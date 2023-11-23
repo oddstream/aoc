@@ -26,6 +26,11 @@ func parseInput() {
 
 func main() {
 	defer duration(time.Now(), "main")
+
+	var part int
+	flag.IntVar(&part, "part", 2, "1 or 2")
+	flag.Parse()
+
 	parseInput()
 }
 
