@@ -1,22 +1,22 @@
+// https://adventofcode.com/2015/day/7
 package main
 
 import (
 	"bufio"
 	_ "embed"
-	"flag"
 	"fmt"
 	"math"
 	"strconv"
 	"strings"
 )
 
-//go:embed "input.txt"
+//go:embed input.txt
 var input string
 
 type Instruction struct {
 	op1, op2 string // operands
 	CMD      string // operator
-	dst      string
+	dst      string // a wire, NOT a register
 }
 
 var wires map[string]Instruction = make(map[string]Instruction)
@@ -88,10 +88,6 @@ func execute(wire string) uint16 {
 }
 
 func main() {
-	var part int
-	flag.IntVar(&part, "part", 1, "1 or 2")
-	flag.Parse()
-
 	scanner := bufio.NewScanner(strings.NewReader(input))
 	for scanner.Scan() {
 		var i = parseInstruction(scanner.Text())

@@ -78,14 +78,14 @@ func parseInput() {
 // with the amount of each ingredient ranging from 0 to 100
 // the slice it returns is the same length as the number of ingredients
 // hardwired to 2 ingredients for the moment
-func permute2(c chan [2]int) {
-	// c <- [2]int{44, 56}
-	for i := 0; i <= 100; i++ {
-		j := 100 - i
-		c <- [2]int{i, j}
-	}
-	close(c)
-}
+// func permute2(c chan [2]int) {
+// 	// c <- [2]int{44, 56}
+// 	for i := 0; i <= 100; i++ {
+// 		j := 100 - i
+// 		c <- [2]int{i, j}
+// 	}
+// 	close(c)
+// }
 
 func permute4(c chan [4]int) {
 	for i := 0; i <= 100; i++ {

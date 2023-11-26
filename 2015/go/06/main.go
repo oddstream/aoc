@@ -1,3 +1,4 @@
+// https://adventofcode.com/2015/day/6
 package main
 
 import (
@@ -122,5 +123,5 @@ func main() {
 	} else {
 		count = part2()
 	}
-	fmt.Println(count) // 400410
+	fmt.Println(count)
 }

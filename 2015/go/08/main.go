@@ -1,22 +1,18 @@
+// https://adventofcode.com/2015/day/8
 package main
 
 import (
 	"bufio"
 	_ "embed"
-	"flag"
 	"fmt"
 	"strconv"
 	"strings"
 )
 
-//go:embed "input.txt"
+//go:embed input.txt
 var input string
 
 func main() {
-	var part int
-	flag.IntVar(&part, "part", 2, "1 or 2")
-	flag.Parse()
-
 	var len1, len2, len3 int
 	scanner := bufio.NewScanner(strings.NewReader(input))
 	for scanner.Scan() {

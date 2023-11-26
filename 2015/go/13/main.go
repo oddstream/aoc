@@ -4,6 +4,7 @@ import (
 	"bufio"
 	_ "embed"
 	"fmt"
+	"oddstream/aoc/utils"
 	"regexp"
 	"strconv"
 	"strings"
@@ -35,40 +36,34 @@ func Duration(invocation time.Time, name string) {
 
 // parseInput and set up seating map and list of names
 func parseInput() {
-	// namesMap is just a set of names, used to assemble a list of all people's names
-	var namesMap map[string]struct{} = make(map[string]struct{})
+	// namesSet is  used to assemble namesList,
+	// a list of all people's names
+	// that can be used to permute all name combinations
+	var namesSet utils.Set[string] = utils.NewSet[string]()
 
+	re := regexp.MustCompile(`(?P<subject>\w+) would (?P<gainlose>\w+) (?P<amount>\d+) happiness units by sitting next to (?P<partner>\w+).`)
 	scanner := bufio.NewScanner(strings.NewReader(input))
-	// re := regexp.MustCompile(`(?P<name>\w+) would (?P<change>\w+) (?P<number>\d+) happiness units by sitting next to (?P<partner>\w+).`)
-	re := regexp.MustCompile(`(\w+) would (\w+) (\d+) happiness units by sitting next to (\w+).`)
-	// fmt.Printf("Pattern: %v\n", re.String())
 	for scanner.Scan() {
-		matches := re.FindAllStringSubmatchIndex(scanner.Text(), -1)
-		// len(matches) == 1
-		// len(matches[0]) == 10
-		// 0:1 is whole match
-		subject := scanner.Text()[matches[0][2]:matches[0][3]]
-		ch := scanner.Text()[matches[0][4]:matches[0][5]]
-		numstr := scanner.Text()[matches[0][6]:matches[0][7]]
-		delta, _ := strconv.Atoi(numstr)
-		if ch == "lose" {
+		match := re.FindStringSubmatch(scanner.Text())
+		result := make(map[string]string)
+		for i, name := range re.SubexpNames() {
+			if i != 0 && name != "" {
+				result[name] = match[i]
+			}
+		}
+
+		namesSet.Add(result["subject"])
+
+		delta, _ := strconv.Atoi(result["amount"])
+		if result["gainlose"] == "lose" {
 			delta = -delta
 		}
-		partner := scanner.Text()[matches[0][8]:matches[0][9]]
-		// fmt.Println(s)
-		namesMap[subject] = struct{}{}
-
-		if smap[subject] == nil {
-			smap[subject] = make(map[string]int)
+		if smap[result["subject"]] == nil {
+			smap[result["subject"]] = make(map[string]int)
 		}
-		smap[subject][partner] = delta
+		smap[result["subject"]][result["partner"]] = delta
 	}
-	if err := scanner.Err(); err != nil {
-		fmt.Printf("scanner error: %v\n", err)
-	}
-	for name := range namesMap {
-		namesList = append(namesList, name)
-	}
+	namesList = namesSet.Members()
 }
 
 func permute(data []Person, c chan []Person) {
@@ -101,7 +96,7 @@ func main() {
 	defer Duration(time.Now(), "main")
 
 	parseInput()
-	fmt.Println(namesList)
+	// fmt.Println(namesList)
 
 	{
 		var lst []Person
