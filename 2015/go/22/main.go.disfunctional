@@ -1,0 +1,173 @@
+package main
+
+import (
+	"log"
+	"math"
+	"math/rand"
+)
+
+// see this, for selling the idea of nim
+// https://github.com/narimiran/advent_of_code_2015/blob/master/nim/day22.nim
+// caveat: author has changed the starting conditions as a trap for the lazy
+// you can run it in the nim playground https://play.nim-lang.org/
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+type Spell struct {
+	cost, // in mana
+	damage, // amount of damage dealt per turn
+	armor, // amount armor increases per turn
+	heal, // amount HP increases per turn
+	mana, // amount mana increases per turn
+	turns int // number of turns spell lasts for (default 1)
+}
+
+type BattleState struct {
+	playerHP     int
+	playerMana   int
+	playerArmor  int
+	bossHP       int
+	bossDamage   int
+	activeSpells map[string]Spell
+	manaSpent    int
+	// boss has no starting mana, so cannot have spells
+}
+
+var spellsMap map[string]Spell = map[string]Spell{
+	// name and cost mandatory
+	// turns should default to 1
+	// everything else default to 0
+	"Magic Missile": {cost: 53, damage: 4, turns: 1},
+	"Drain":         {cost: 73, heal: 2, turns: 1},
+	"Shield":        {cost: 113, armor: 7, turns: 6},
+	"Poison":        {cost: 173, damage: 3, turns: 6},
+	"Recharge":      {cost: 229, mana: 101, turns: 5},
+}
+
+// turn does one round of battle
+func turn(b *BattleState) {
+	// player does damage
+	for spell := range b.activeSpells {
+		sp := b.activeSpells[spell]
+
+		// boss never has any armor
+		b.bossHP -= max(sp.damage, 1)
+
+		b.playerHP += sp.heal
+		b.playerArmor += sp.armor
+		b.playerMana += sp.mana
+		sp.turns -= 1 // effects tick down each turn, including both the player's turn and the boss's turn separately.
+		if sp.turns <= 0 {
+			delete(b.activeSpells, spell)
+		}
+		// effects can be started on the same turn they end
+		// not sure what this means at the moment
+	}
+	if b.bossHP <= 0 {
+		return // player wins
+	}
+	// boss does damage, minium 1
+	// also need to tick down the active spells
+	b.playerHP -= max(b.bossDamage-b.playerArmor, 1)
+	for spell := range b.activeSpells {
+		sp := b.activeSpells[spell]
+		sp.turns -= 1 // effects tick down each turn, including both the player's turn and the boss's turn separately.
+		if sp.turns <= 0 {
+			delete(b.activeSpells, spell)
+		}
+	}
+}
+
+func availableSpells(b *BattleState) []string {
+	var out []string = []string{}
+	for spellName, spell := range spellsMap {
+		if b.playerMana >= spell.cost {
+			if _, ok := b.activeSpells[spellName]; !ok {
+				out = append(out, spellName)
+			}
+		}
+	}
+	return out
+}
+
+func chooseSpell(b *BattleState) bool {
+	av := availableSpells(b)
+	if len(av) == 0 {
+		return false
+	}
+	n := rand.Intn(len(av))
+	b.activeSpells[av[n]] = spellsMap[av[n]]
+	b.playerMana -= spellsMap[av[n]].cost
+	b.manaSpent += spellsMap[av[n]].cost
+	return true
+}
+
+func newBattle() BattleState {
+	return BattleState{
+		playerHP:     50,
+		playerMana:   500,
+		bossHP:       58,
+		bossDamage:   9,
+		activeSpells: make(map[string]Spell),
+	}
+}
+
+func battle() int {
+	b := newBattle()
+	for {
+		// On each of your turns, you must select one of your spells to cast.
+		// If you cannot afford to cast any spell, you lose.
+		if !chooseSpell(&b) {
+			// fmt.Println("player cannot choose spell")
+			break
+		}
+		turn(&b)
+		if b.playerHP <= 0 {
+			// log.Println("player loses")
+			break
+		} else if b.bossHP <= 0 {
+			// log.Println("player wins", b.manaSpent, "mana spent")
+			return b.manaSpent
+		} else if b.playerMana <= 0 {
+			// fmt.Println("player has run out of mana")
+			break
+		}
+	}
+	return math.MaxInt32
+}
+
+/*
+Hit Points: 58
+Damage: 9
+
+	player buys a new spell if they have enough mana and does not already have that spell
+	If you cannot afford to cast any spell, you lose.
+
+	boss doesn't start with any mana so cannot afford spells?
+*/
+
+// https://eddmann.com/posts/advent-of-code-2015-day-22-wizard-simulator-20xx/
+
+func main() {
+	// copy spells from stock by value (not reference)
+	var minWin int = math.MaxInt32
+	for i := 0; i < 10000; i++ {
+		n := battle()
+		if n < minWin {
+			minWin = n
+		}
+	}
+	log.Println("min win", minWin) // 833
+	// more than 465
+	// not 833
+	// not 853
+	// not 873
+	// not 953
+	// greater than 1235 and less than 1348
+	// less than 1269
+}

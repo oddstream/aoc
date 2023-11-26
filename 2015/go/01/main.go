@@ -1,34 +1,51 @@
+// https://adventofcode.com/2015/day/1
+
 package main
 
 import (
 	_ "embed"
-	"flag"
-	"fmt"
+	"log"
 )
 
-//go:embed "input.txt"
+//go:embed input.txt
 var input string
 
-func main() {
-	var part int
-	flag.IntVar(&part, "part", 2, "1 or 2")
-	flag.Parse()
+func part1() int {
+	var level int
+	for _, r := range input {
+		switch r {
+		case '(':
+			level++
+		case ')':
+			level--
+		default:
+			log.Println("unexpected rune", r)
+		}
+	}
+	return level
+}
 
+func part2() int {
 	var level int
 	for i, r := range input {
-		if r == '(' {
+		switch r {
+		case '(':
 			level++
-		} else if r == ')' {
+		case ')':
 			level--
-		} else {
-			fmt.Println("unexpected char", r)
+		default:
+			log.Println("unexpected rune", r)
 		}
-		if part == 2 && level < 0 {
-			fmt.Println("part 2 ", i)
-			break
+		if level == -1 {
+			// add 1 because problem description mentions first
+			// character is at position 1, and Go is 0-based
+			return i + 1
 		}
 	}
-	if part == 1 {
-		fmt.Println("part 1", level)
-	}
+	return -1
+}
+
+func main() {
+	log.Println("part 1", part1())
+	log.Println("part 2", part2())
 }

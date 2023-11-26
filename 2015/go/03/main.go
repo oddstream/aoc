@@ -1,21 +1,18 @@
+// https://adventofcode.com/2015/day/3
+
 package main
 
 import (
 	_ "embed"
-	"flag"
-	"fmt"
+	"log"
 )
 
-//go:embed "input.txt"
+//go:embed input.txt
 var input string
 
 type mapKey [2]int
 
-var sx, sy int
-var rx, ry int
-var presents = map[mapKey]int{mapKey{0, 0}: 1} // explicit 0,0 for legibility
-
-func visit(r rune, x, y int) (int, int) {
+func visit(presents map[mapKey]int, r rune, x, y int) (int, int) {
 	switch r {
 	case '<':
 		x--
@@ -26,29 +23,36 @@ func visit(r rune, x, y int) (int, int) {
 	case 'v':
 		y++
 	default:
-		fmt.Println("unexpected char", r)
+		log.Println("unexpected rune", r)
 	}
 	presents[mapKey{x, y}]++ // auto creates new entry
 	return x, y
 }
 
-func main() {
-	var part int
-	flag.IntVar(&part, "part", 1, "1 or 2")
-	flag.Parse()
+func part1() int {
+	var sx, sy int
+	var presents = map[mapKey]int{{0, 0}: 1} // explicit 0,0 for legibility
+	for _, r := range input {
+		sx, sy = visit(presents, r, sx, sy)
+	}
+	return len(presents)
+}
 
-	if part == 1 {
-		for _, r := range input {
-			sx, sy = visit(r, sx, sy)
-		}
-	} else if part == 2 {
-		for i, r := range input {
-			if i%2 == 0 {
-				sx, sy = visit(r, sx, sy)
-			} else {
-				rx, ry = visit(r, rx, ry)
-			}
+func part2() int {
+	var sx, sy int
+	var rx, ry int
+	var presents = map[mapKey]int{{0, 0}: 1} // explicit 0,0 for legibility
+	for i, r := range input {
+		if i%2 == 0 {
+			sx, sy = visit(presents, r, sx, sy)
+		} else {
+			rx, ry = visit(presents, r, rx, ry)
 		}
 	}
-	fmt.Println("part", part, len(presents)) // 2081, 2341
+	return len(presents)
+}
+
+func main() {
+	log.Println("part 1", part1()) // 2081
+	log.Println("part 2", part2()) // 2341
 }
