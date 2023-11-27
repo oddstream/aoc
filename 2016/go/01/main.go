@@ -3,7 +3,7 @@ package main
 import (
 	_ "embed"
 	"fmt"
-	"oddstream/aoc/utils"
+	util "oddstream/aoc/util"
 	"strconv"
 	"strings"
 )
@@ -66,7 +66,7 @@ func partTwo() int {
 	var dir int = 0 // N
 	var dx, dy int
 	var x, y int = 0, 0
-	var visited utils.Set[[2]int] = utils.NewSet[[2]int]([2]int{x, y})
+	var visited util.Set[[2]int] = util.NewSet[[2]int]([2]int{x, y})
 	substrs := strings.Split(input, ", ")
 	for _, substr := range substrs {
 		turn := rune(substr[0])
