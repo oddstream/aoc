@@ -32,7 +32,7 @@ const
     active: proc(s: State): bool = s.rechargeTurns > 0
   )
   spells = [magicMissile, drain, shield, poison, recharge]
-  bossDmg = 9 # was 8
+  bossDmg = 9
 
 
 proc applyEffects(s: var State) =

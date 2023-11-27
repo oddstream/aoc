@@ -50,6 +50,7 @@ print(bitoper(6,3,AND))  --> 2
 - [Go](https://github.com/alexchao26/advent-of-code-go)
 - [Nim](https://github.com/narimiran/advent_of_code_2015)
 - [Racket](https://github.com/goderich/aoc2020/blob/master/day07.rkt)
+- [Python](https://sharick.xyz/projects/advent-of-code)
 
 ## TODO
 ```go

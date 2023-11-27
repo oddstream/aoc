@@ -68,9 +68,12 @@ func (s *State) applyEffects() {
 func battle(s State, difficulty Difficulty) int {
 	var states []State = []State{s}
 	var state State
-	var result = math.MaxInt32
+	var result = math.MaxInt64
+
 	for len(states) > 0 {
-		state, states = states[len(states)-1], states[:len(states)-1] // Go's ugly pop
+		// Go's ugly pop
+		state = states[len(states)-1]
+		states = states[:len(states)-1]
 
 		if difficulty == hard {
 			state.hp -= 1
@@ -81,7 +84,8 @@ func battle(s State, difficulty Difficulty) int {
 
 		state.applyEffects()
 		if state.bossHP <= 0 {
-			result = min(result, state.spentMana) // min is now a built-in generic
+			// min is now a built-in generic
+			result = min(result, state.spentMana)
 			continue
 		}
 
@@ -93,7 +97,8 @@ func battle(s State, difficulty Difficulty) int {
 			if spell.cost <= state.mana &&
 				state.spentMana+spell.cost < result &&
 				!spell.active(state) {
-				var newState State = state // Go primitive types are copied by value
+				// Go primitive types are copied by value
+				var newState State = state
 				newState.mana -= spell.cost
 				newState.spentMana += spell.cost
 				spell.effect(&newState)
