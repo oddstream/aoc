@@ -28,15 +28,17 @@ func containsABBA(s string) bool {
 func supportsTLS(line string) bool {
 	line = strings.ReplaceAll(line, "[", " ")
 	line = strings.ReplaceAll(line, "]", " ")
-	// the fields in brackets will be odd
-	for i, field := range strings.Fields(line) {
+	fields := strings.Fields(line)
+	// the fields in brackets (hypernet) will be odd
+	for i, field := range fields {
 		if i%2 == 1 {
 			if containsABBA(field) {
 				return false
 			}
 		}
 	}
-	for i, field := range strings.Fields(line) {
+	// supernet fields (not in brackets) will be even
+	for i, field := range fields {
 		if i%2 == 0 {
 			if containsABBA(field) {
 				return true
@@ -61,8 +63,69 @@ func partOne() int {
 	return result
 }
 
+// returns list of corresponding BABs
+func containsABAs(s string) ([]string, bool) {
+	var babs []string
+	for i := 0; i < len(s)-2; i++ {
+		if s[i] != s[i+1] && s[i] == s[i+2] {
+			bab := []byte{s[i+1], s[i], s[i+1]}
+			babs = append(babs, string(bab))
+		}
+	}
+	if len(babs) > 0 {
+		return babs, true
+	} else {
+		return nil, false
+	}
+}
+
+func supportsSSL(line string) bool {
+	line = strings.ReplaceAll(line, "[", " ")
+	line = strings.ReplaceAll(line, "]", " ")
+	fields := strings.Fields(line)
+	// search supernet strings for ABAs, collect their BABs
+	var babs []string
+	for i, field := range fields {
+		if i%2 == 0 {
+			if babs2, ok := containsABAs(field); ok {
+				babs = append(babs, babs2...)
+			}
+		}
+	}
+	if len(babs) == 0 {
+		return false
+	}
+	// search hypernet strings for any bab
+	for i, field := range fields {
+		if i%2 == 1 {
+			for _, bab := range babs {
+				if strings.Contains(field, bab) {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+func partTwo() int {
+	var result int
+	scanner := bufio.NewScanner(strings.NewReader(input))
+	for scanner.Scan() {
+		// fmt.Println(scanner.Text(), supportsSSL(scanner.Text()))
+		if supportsSSL(scanner.Text()) {
+			result += 1
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Println(err)
+	}
+	return result
+}
+
 func main() {
 	defer duration(time.Now(), "main")
 
 	fmt.Println(partOne()) // 118
+	fmt.Println(partTwo()) // 260
 }
