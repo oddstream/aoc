@@ -58,3 +58,38 @@ func Exclusion[T comparable](a []T, b []T) []T {
 	}
 	return result
 }
+
+func Reverse[E any](s []E) []E {
+	result := make([]E, 0, len(s))
+	for i := len(s) - 1; i >= 0; i-- {
+		result = append(result, s[i])
+	}
+	return result
+}
+
+func Map[E any](s []E, f mapFunc[E]) []E {
+    result := make([]E, len(s))
+    for i := range s {
+        result[i] = f(s[i])
+    }
+    return result
+}
+
+func Filter[E any](s []E, f keepFunc[E]) []E {
+    result := []E{}
+    for _, v := range s {
+        if f(v) {
+            result = append(result, v)
+        }
+    }
+    return result
+}
+
+func Reduce[E any](s []E, init E, f reduceFunc[E]) E {
+    cur := init
+    for _, v := range s {
+        cur = f(cur, v)
+    }
+    return cur
+}
+
