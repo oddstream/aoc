@@ -1,3 +1,4 @@
+// https://adventofcode.com/2016/day/2
 package main
 
 import (
@@ -98,7 +99,7 @@ func partTwo() string {
 		result = result + string(key)
 	}
 	if err := scanner.Err(); err != nil {
-		fmt.Printf("scanner error: %v\n", err)
+		fmt.Println(err)
 	}
 	return result
 }

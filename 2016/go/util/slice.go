@@ -67,6 +67,7 @@ func Reverse[E any](s []E) []E {
 	return result
 }
 
+/*
 func Map[E any](s []E, f mapFunc[E]) []E {
     result := make([]E, len(s))
     for i := range s {
@@ -92,4 +93,4 @@ func Reduce[E any](s []E, init E, f reduceFunc[E]) E {
     }
     return cur
 }
-
+*/

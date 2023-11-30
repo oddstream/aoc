@@ -1,3 +1,4 @@
+// https://adventofcode.com/2016/day/3
 package main
 
 import (
@@ -5,7 +6,6 @@ import (
 	_ "embed"
 	"fmt"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -29,16 +29,9 @@ func partOne() int {
 	var result = 0
 	scanner := bufio.NewScanner(strings.NewReader(input))
 	for scanner.Scan() {
-		tokens := strings.Fields(scanner.Text())
 		var a, b, c int
 		var err error
-		if a, err = strconv.Atoi(tokens[0]); err != nil {
-			fmt.Println(err)
-		}
-		if b, err = strconv.Atoi(tokens[1]); err != nil {
-			fmt.Println(err)
-		}
-		if c, err = strconv.Atoi(tokens[2]); err != nil {
+		if _, err = fmt.Sscanf(scanner.Text(), " %d %d %d", &a, &b, &c); err != nil {
 			fmt.Println(err)
 		}
 		if isTriangle([]int{a, b, c}) {
@@ -58,16 +51,9 @@ func partTwo() int {
 
 	scanner := bufio.NewScanner(strings.NewReader(input))
 	for scanner.Scan() {
-		tokens := strings.Fields(scanner.Text())
 		var a, b, c int
 		var err error
-		if a, err = strconv.Atoi(tokens[0]); err != nil {
-			fmt.Println(err)
-		}
-		if b, err = strconv.Atoi(tokens[1]); err != nil {
-			fmt.Println(err)
-		}
-		if c, err = strconv.Atoi(tokens[2]); err != nil {
+		if _, err = fmt.Sscanf(scanner.Text(), " %d %d %d", &a, &b, &c); err != nil {
 			fmt.Println(err)
 		}
 		lines = append(lines, []int{a, b, c})

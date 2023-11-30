@@ -1,3 +1,4 @@
+// https://adventofcode.com/2016/day/5
 package main
 
 import (
@@ -5,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math"
+	"strings"
 	"time"
 )
 
@@ -17,15 +19,17 @@ func duration(invocation time.Time, name string) {
 }
 
 func partOne() string {
+	defer duration(time.Now(), "partOne")
 	var password []byte
 	for i := 0; i < math.MaxInt; i++ {
 		in := fmt.Sprintf("%s%d", input, i)
 		hash := md5.Sum([]byte(in))
 		out := hex.EncodeToString(hash[:])
-		if out[0] == '0' && out[1] == '0' && out[2] == '0' && out[3] == '0' && out[4] == '0' {
+		if strings.HasPrefix(out, "00000") {
 			password = append(password, out[5])
 			if len(password) == 8 {
 				// fmt.Println(string(c), i, in, hash, out)
+				// fmt.Println("max i", i)
 				break
 			}
 		}
@@ -34,12 +38,13 @@ func partOne() string {
 }
 
 func partTwo() string {
+	defer duration(time.Now(), "partTwo")
 	var password [8]byte
 	for i := 0; i < math.MaxInt; i++ {
 		in := fmt.Sprintf("%s%d", input, i)
 		hash := md5.Sum([]byte(in))
 		out := hex.EncodeToString(hash[:])
-		if out[0] == '0' && out[1] == '0' && out[2] == '0' && out[3] == '0' && out[4] == '0' {
+		if strings.HasPrefix(out, "00000") {
 			pos := out[5] - '0'
 			ch := out[6]
 			// fmt.Printf("pos %d char %s", pos, string(ch))
@@ -52,6 +57,7 @@ func partTwo() string {
 					}
 				}
 				if blanks == 0 {
+					// fmt.Println("max i", i)
 					break
 				}
 			}
@@ -63,6 +69,6 @@ func partTwo() string {
 
 func main() {
 	defer duration(time.Now(), "main")
-	fmt.Println(partOne()) // 1a3099aa
-	fmt.Println(partTwo()) // 694190cd
+	fmt.Println(partOne()) // 1a3099aa, 30s, max i 16734551
+	fmt.Println(partTwo()) // 694190cd, 43s, max i 26326685
 }

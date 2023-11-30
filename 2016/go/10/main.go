@@ -61,7 +61,6 @@ func addValueToOutput(val, out int) {
 func extractValues(bot int) (int, int) {
 	if bots[bot][0] == 0 || bots[bot][1] == 0 {
 		return 0, 0
-		// fmt.Println("BOT HAS ZERO VALUE", bot)
 	}
 	var lo, hi int
 	if bots[bot][0] > bots[bot][1] {

@@ -44,7 +44,7 @@ print(bitoper(6,3,XOR))  --> 5
 print(bitoper(6,3,AND))  --> 2
 ```
 
-- Go's verbosity grates a bit. When. for example, declaring a slice of three ints like `var dims []int = []int{0, 0, 0}`, why is the type `[]int` repeated? Why not just have `var dims []int = {0, 0, 0}`?
+- Go's verbosity grates a bit (but then it is a 'modern C'). When. for example, declaring a slice of three ints like `var dims []int = []int{0, 0, 0}`, why is the type `[]int` repeated? Why not just have `var dims []int = {0, 0, 0}`?
 
 ## Notable repos
 - [Go](https://github.com/alexchao26/advent-of-code-go)

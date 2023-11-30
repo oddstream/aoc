@@ -1,3 +1,4 @@
+// https://adventofcode.com/2016/day/4
 package main
 
 import (
@@ -27,8 +28,7 @@ type Room struct {
 
 func shiftCipher(s string, n int) string {
 	var out []rune
-	runes := []rune(s)
-	for _, r := range runes {
+	for _, r := range s {
 		if r == '-' {
 			out = append(out, ' ')
 		} else {
