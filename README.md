@@ -21,6 +21,10 @@ Discourage screen clutter, eg in Go use a `switch` rather than a nested cascade 
 
 Use one logging/trace system, eg in Go use `log.Println`, in Lua use a simple `log` library.
 
+## Go helper library
+
+A Lodash-style Go library based on Go 1.18+ Generics (map, filter, contains, find...) https://github.com/samber/lo
+
 ## Observations on language
 
 - Go's regexp package seems a little weird and clunky, eg specifying named capture groups seems obliquely-supported, unless I'm missing something. Lua offers a simpler system. Why oh why oh why can't all languages just use one agreed regexp package?
