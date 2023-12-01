@@ -15,7 +15,7 @@ The first line of each solution should have a comment linking to the problem des
 
 Solutions should have separate partOne() and partTwo() functions/procedures - no command line flags switching.
 
-Favour readability, eg in Go, use `i += 1` rather than `i++`. Use Set and Stack libraries.
+Favour readability, eg in Go, use `i += 1` rather than `i++`. Use self-written helper libraries that apply to all days. Eschew regular expressions.
 
 Discourage screen clutter, eg in Go use a `switch` rather than a nested cascade of `if else if else`.
 

@@ -1,0 +1,67 @@
+local log = require 'log'
+dofile 'strings.lua'
+
+local input = '01-input.txt'
+
+local numbers = {'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'}
+
+local function partOne()
+	-- remove all non-numeric characters
+	-- make the first and last character into a number
+	local result = 0
+	for line in io.lines(input) do
+		local nums = {}
+		for num in string.gmatch(line, '%d') do
+			table.insert(nums, num)
+		end
+		result = result + tonumber(nums[1] .. nums[#nums])
+	end
+	return result
+end
+
+local function partTwo()
+	local result = 0
+	for line in io.lines(input) do
+		local num = ""
+		local tmp = line -- make copy because we will destroy original
+		while #tmp > 0 do
+			local c = tmp:sub(1,1) -- first character
+			if c >= '0' and c <= '9' then
+				num = num .. c
+				break
+			end
+			for k, v in ipairs(numbers) do
+				if tmp:startswith(v) then
+					num = num .. k
+					break
+				end
+			end
+			if #num > 0 then
+				break
+			end
+			tmp = tmp:sub(2, #tmp) -- remove first character
+		end
+		while #line > 0 do
+			local c = line:sub(#line)	-- last character
+			if c >= '0' and c <= '9' then
+				num = num .. c
+				break
+			end
+			for k, v in ipairs(numbers) do
+				if line:endswith(v) then
+					num = num .. k
+					break
+				end
+			end
+			if #num > 1 then
+				break	-- we found second (last) number
+			end
+			line = line:sub(1, -2) -- remove last character
+		end
+		result = result + tonumber(num)
+	end
+	return result
+end
+
+log.info('part one %d\n', partOne())
+log.info('part two %d\n', partTwo())
