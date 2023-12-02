@@ -5,7 +5,7 @@ Chapeau to Eric Wastl (http://was.tl/) (also for [vanilla js](http://vanilla-js.
 The aim is to - eventually - do all puzzles from all years. Much of the code is quick-and-dirty and I'm sometimes surprised to get the right answer. Occasionally I ask GPT-4 for help with a function; I've given up on Google's Bard, which has yet to yield any correct answers.
 
 ## 2023
-Follow along day-by-day using Go.
+Follow along day-by-day using Go, redo solution in Lua, maybe AWK.
 
 Then go back to 2015 onwards finding solutions in other languages for each year, like Nim, Dart, Tcl, Ruby? ...
 
@@ -20,6 +20,11 @@ Favour readability, eg in Go, use `i += 1` rather than `i++`. Use self-written h
 Discourage screen clutter, eg in Go use a `switch` rather than a nested cascade of `if else if else`.
 
 Use one logging/trace system, eg in Go use `log.Println`, in Lua use a simple `log` library.
+
+## Lessons
+
+1. Remove all irrelevant characters from input before processing it. (2023 day 1 part 1)
+2. Use maps
 
 ## Go helper library
 
@@ -57,6 +62,7 @@ print(bitoper(6,3,AND))  --> 2
 - [Python](https://sharick.xyz/projects/advent-of-code)
 - [Clojure](https://github.com/tschady/advent-of-code/tree/main)
 - [F#](https://github.com/CameronAavik/AdventOfCode)
+- [AWK](https://github.com/phillbush/aoc)
 
 ## TODO
 ```go

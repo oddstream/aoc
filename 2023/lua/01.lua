@@ -3,8 +3,6 @@ dofile 'strings.lua'
 
 local input = '01-input.txt'
 
-local numbers = {'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'}
-
 local function partOne()
 	-- remove all non-numeric characters
 	-- make the first and last character into a number
@@ -21,6 +19,7 @@ end
 
 local function partTwo()
 	local result = 0
+	local numbers = {'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'}
 	for line in io.lines(input) do
 		local num = ""
 		local tmp = line -- make copy because we will destroy original
