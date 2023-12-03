@@ -1,13 +1,11 @@
 local log = require 'log'
 dofile 'strings.lua'
 
-local input = '01-input.txt'
-
-local function partOne()
+local function partOne(filename)
 	-- remove all non-numeric characters
 	-- make the first and last character into a number
 	local result = 0
-	for line in io.lines(input) do
+	for line in io.lines(filename) do
 		local nums = {}
 		for num in string.gmatch(line, '%d') do
 			table.insert(nums, num)
@@ -17,10 +15,10 @@ local function partOne()
 	return result
 end
 
-local function partTwo()
+local function partTwo(filename)
 	local result = 0
 	local numbers = {'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'}
-	for line in io.lines(input) do
+	for line in io.lines(filename) do
 		local num = ""
 		local tmp = line -- make copy because we will destroy original
 		while #tmp > 0 do
@@ -62,5 +60,7 @@ local function partTwo()
 	return result
 end
 
-log.info('part one %d\n', partOne())
-log.info('part two %d\n', partTwo())
+log.info('part one test %d\n', partOne('01-test1.txt'))
+log.info('part one      %d\n', partOne('01-input.txt'))
+log.info('part two test %d\n', partTwo('01-test2.txt'))
+log.info('part two      %d\n', partTwo('01-input.txt'))

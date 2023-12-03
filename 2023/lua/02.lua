@@ -11,23 +11,21 @@ local function partOne(filename)
 	for line in io.lines(filename) do
 		local badGame = false
 		-- extract the game number from the start of the line
-		local game = tonumber(string.match(line, 'Game (%d+): '))
-		-- extract the rest of the line
+		-- and everything to the right hand side
 		-- append a ; to make parsing easier
-		local rhs = string.sub(line, string.find(line, ': ') + 2, -1) .. ';'
+		local game, rhs = string.match(line .. ';', 'Game (%d+): (.+)')
+		game = tonumber(game)
 		-- log.trace('GAME: %d RHS: %s\n', game, rhs)
-		-- for each of the ; delimited sets of cubes
+		-- for each of the ; delimited sets of cubes ...
 		for set in string.gmatch(rhs, '([%l%d ,]+);') do
 			-- log.trace('set %s\n', set)
-			-- for each of the list of <number> <color> in the set of cubes
+			-- for each of the list of <number> <color> in the set of cubes ...
 			for sub in string.gmatch(set, '(%d+ %l+)') do
-				-- extract the number of cubes
-				local num = tonumber(string.match(sub, '(%d+)'))
-				-- extract the cube color
-				local col = string.match(sub, '(%l+)')
+				-- extract the number of cubes and the cube color
+				local num, col = string.match(sub, '(%d+) (%l+)')
 				-- log.trace('sub: %s, num: %d, col: %s\n', sub, num, col)
 				-- if the number of this color exceeds the target number ...
-				if num > bagContents[col] then
+				if tonumber(num) > bagContents[col] then
 					-- log.error('nope\n')
 					badGame = true
 					break
@@ -50,12 +48,11 @@ local function partTwo(filename)
 			blue = 0,
 		}
 		-- we don't care about the game number
-		-- local game = tonumber(string.match(line, 'Game (%d+): '))
-		local rhs = string.sub(line, string.find(line, ': ') + 2, -1) .. ';'
+		local _, rhs = string.match(line ..';', 'Game (%d+): (.+)')
 		for set in string.gmatch(rhs, '([%l%d ,]+);') do
 			for sub in string.gmatch(set, '(%d+ %l+)') do
-				local num = tonumber(string.match(sub, '(%d+)'))
-				local col = string.match(sub, '(%l+)')
+				local num, col = string.match(sub, '(%d+) (%l+)')
+				num = tonumber(num)
 				if num > maxColors[col] then
 					maxColors[col] = num
 				end

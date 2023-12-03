@@ -4,11 +4,6 @@ Chapeau to Eric Wastl (http://was.tl/) (also for [vanilla js](http://vanilla-js.
 
 The aim is to - eventually - do all puzzles from all years. Much of the code is quick-and-dirty and I'm sometimes surprised to get the right answer. Occasionally I ask GPT-4 for help with a function; I've given up on Google's Bard, which has yet to yield any correct answers.
 
-## 2023
-Follow along day-by-day using Go, redo solution in Lua, maybe AWK.
-
-Then go back to 2015 onwards finding solutions in other languages for each year, like Nim, Dart, Tcl, Ruby? ...
-
 ## Coding style
 
 The first line of each solution should have a comment linking to the problem description page.
@@ -32,9 +27,9 @@ A Lodash-style Go library based on Go 1.18+ Generics (map, filter, contains, fin
 
 ## Observations on language
 
-- Go's regexp package seems a little weird and clunky, eg specifying named capture groups seems obliquely-supported, unless I'm missing something. Lua offers a simpler system. Why oh why oh why can't all languages just use one agreed regexp package?
+- Go's regexp package seems a little weird and clunky, eg specifying named capture groups seems obliquely-supported, unless I'm missing something. Lua offers a simpler, non-POSIX, system. (*Unlike several other scripting languages, **Lua does not use POSIX regular expressions (regexp) for pattern matching**. The main reason for this is size: A typical implementation of POSIX  regexp takes more than 4,000 lines of code. This is bigger than all Lua  standard libraries together*).
 
-- Lua 5.1's lack of bitwise operators hurts a bit, unless I use [the library that comes with LuaJIT](https://bitop.luajit.org/) or something like:
+- Lua 5.1's lack of bitwise operators hurts a bit, unless I use 5.4 or [the library that comes with LuaJIT](https://bitop.luajit.org/), or something like:
 
 ```Lua
 OR, XOR, AND = 1, 3, 4
@@ -53,7 +48,9 @@ print(bitoper(6,3,XOR))  --> 5
 print(bitoper(6,3,AND))  --> 2
 ```
 
-- Go's verbosity grates a bit (but then it is a 'modern C'). When. for example, declaring a slice of three ints like `var dims []int = []int{0, 0, 0}`, why is the type `[]int` repeated? Why not just have `var dims []int = {0, 0, 0}`?
+- Go's verbosity grates a bit (but then it is a 'modern C'). When. for example, declaring a slice of three ints like `var dims []int = []int{0, 0, 0}`, why is the type `[]int` repeated? Why not just have `var dims []int = {0, 0, 0}`? Go is 'designed for concurrency and scalability' so it's not really a great fit for AoC.
+- The most popular choice of language for AOC seems to be [Python](https://www.python.org/). However, I don't know Python and don't really want to. The nearest I'd be willing to go in that direction would be [Nim](https://nim-lang.org/). Other well-suited languages include [Perl](https://www.perl.org/), [Ruby](https://www.ruby-lang.org/en/), Dart, Tcl, ...
+- AoC likes a language that is compact without being unreadable (so, not Javascript, SED, and certainly no code golf), not long winded (so, not Java or C and it's modern ilk), that has good out-of-the-box support for string manipulation, and can occasionally do MD5 hashes and bit-twiddling. It doesn't have to be fast. This [this blog entry](https://www.benkraft.org/2017/12/26/advent-of-code/) for a discussion of several languages (TLDR he didn't like Perl).
 
 ## Notable repos
 - [Go](https://github.com/alexchao26/advent-of-code-go)
