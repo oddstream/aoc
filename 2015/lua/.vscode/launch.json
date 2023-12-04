@@ -9,7 +9,7 @@
 			"type": "lua-local",
 			"request": "launch",
 			"program": {
-				"lua": "/home/gilbert/lua-5.4.6/src/lua",
+				"lua": "/home/gilbert/lua-5.4.3/src/lua",
 				"file": "${file}"
 			}
 		},

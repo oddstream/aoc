@@ -10,7 +10,7 @@ local function partOne(filename, expected)
 	-- split each line into three parts
 	for line in io.lines(filename) do
 		-- don't care about the card number in part one
-		local _, winning, numbers = line:match'Card%s+(%d+): ([0-9 ]+)%|([0-9 ]+)'
+		local _, winning, numbers = line:match'Card%s+(%d+): ([%d ]+)%|([%d ]+)'
 		-- create a map of winning numbers
 		local winMap = {}
 		for num in winning:gmatch'(%d+)' do
@@ -42,16 +42,13 @@ local function partTwo(filename, expected)
 	local copies = {}
 	--@param n integer
 	local function bumpCopies(n)
-		if copies[n] == nil then
-			copies[n] = 1
-		else
-			copies[n] = copies[n] + 1
-		end
+		copies[n] = copies[n] or 0
+		copies[n] = copies[n] + 1
 	end
 	local result = 0
 	-- split each line into three parts
 	for line in io.lines(filename) do
-		local cardno, winning, numbers = line:match'Card%s+(%d+): ([0-9 ]+)%|([0-9 ]+)'
+		local cardno, winning, numbers = line:match'Card%s+(%d+): ([%d ]+)%|([%d ]+)'
 		cardno = tonumber(cardno)
 		bumpCopies(cardno)
 
@@ -77,7 +74,7 @@ local function partTwo(filename, expected)
 		end
 	end
 	for _, v in ipairs(copies) do
-		result = result + tostring(v)
+		result = result + v
 	end
 	if expected ~= nil and result ~= expected then
 		log.error('part two should be %d\n', expected)
@@ -85,19 +82,21 @@ local function partTwo(filename, expected)
 	return result
 end
 
+log.report('%s\n', _VERSION)
 log.report('part one test %d\n', partOne('04-test.txt', 13))
 log.report('part one      %d\n', partOne('04-input.txt', 19135))
 log.report('part two test %d\n', partTwo('04-test.txt', 30))
 log.report('part two      %d\n', partTwo('04-input.txt', 5704953))
 
 --[[
-$ time lua54 04.lua
+$ time luajit 04.lua
+Lua 5.1
 part one test 13
 part one      19135
 part two test 30
 part two      5704953
 
-real    0m0.375s
-user    0m0.369s
-sys     0m0.006s
+real	0m0.101s
+user	0m0.094s
+sys	0m0.004s
 ]]
