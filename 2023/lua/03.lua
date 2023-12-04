@@ -143,6 +143,7 @@ local function partTwo(filename, expected)
 	return result
 end
 
+log.report('%s\n', _VERSION)
 log.report('part one test %d\n', partOne('03-test.txt', 4361))
 log.report('part one      %d\n', partOne('03-input.txt', 535078))
 log.report('part two test %d\n', partTwo('03-test.txt', 467835))

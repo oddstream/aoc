@@ -62,6 +62,7 @@ local function partTwo(filename)
 	return result
 end
 
+log.report('%s\n', _VERSION)
 log.info('part one test %d\n', partOne('01-test1.txt'))
 log.info('part one      %d\n', partOne('01-input.txt'))
 log.info('part two test %d\n', partTwo('01-test2.txt'))
