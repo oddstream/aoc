@@ -19,7 +19,7 @@ Use one logging/trace system, eg in Go use `log.Println`, in Lua use a simple `l
 ## Lessons
 
 1. Remove all irrelevant characters from input before processing it. (2023 day 1 part 1)
-2. Use maps
+2. Use maps (2023 day 3)
 
 ## Go helper library
 

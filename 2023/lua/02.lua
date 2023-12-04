@@ -1,3 +1,5 @@
+-- https://adventofcode.com/2023/day/2
+
 local log = require 'log'
 
 local bagContents = {
@@ -67,6 +69,7 @@ local function partTwo(filename)
 	return result
 end
 
+print(_VERSION)
 log.report('part one test %d\n', partOne('02-test.txt'))	-- 8
 log.report('part one      %d\n', partOne('02-input.txt'))	-- 1853
 log.report('part two test %d\n', partTwo('02-test.txt'))	-- 2286

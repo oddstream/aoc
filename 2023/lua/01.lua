@@ -1,3 +1,5 @@
+-- https://adventofcode.com/2023/day/1
+
 local log = require 'log'
 dofile 'strings.lua'
 
@@ -7,7 +9,7 @@ local function partOne(filename)
 	local result = 0
 	for line in io.lines(filename) do
 		local nums = {}
-		for num in string.gmatch(line, '%d') do
+		for num in line:gmatch'%d' do
 			table.insert(nums, num)
 		end
 		result = result + tonumber(nums[1] .. nums[#nums])

@@ -1,8 +1,14 @@
+-- https://adventofcode.com/2023/day/3
+
 local log = require 'log'
 
 -- the input is 140x140 characters
 -- the input DOES contain line duplicates eg line 20 has two 20s
+-- no number touches more than one symbol
+-- no non-asterisk symbol touches exactly two numbers
 
+---@param filename string
+---@return table # list of lines from the input file
 local function loadEngine(filename)
 	local engine = {}
 	for line in io.lines(filename) do
@@ -11,6 +17,8 @@ local function loadEngine(filename)
 	return engine
 end
 
+---@param engine table Loaded list of lines from input file
+---@return table # map of symbol locations
 local function mapSymbols(engine)
 	local symbols = {}
 	local function isSymbol(ch)
@@ -27,6 +35,10 @@ local function mapSymbols(engine)
 	return symbols
 end
 
+---@param symbols table
+---@param x integer
+---@param y integer
+---@return boolean
 local function isPosAdjacentToSymbol(symbols, x, y)
 	local deltas = {-1, 0, 1}
 	for _, col in ipairs(deltas) do
@@ -40,6 +52,11 @@ local function isPosAdjacentToSymbol(symbols, x, y)
 	return false
 end
 
+---@param symbols table
+---@param num string
+---@param x integer
+---@param y integer
+---@return boolean
 local function isNumAdjacentToSymbol(symbols, num, x, y)
 	for i = 0, #num-1 do
 		if isPosAdjacentToSymbol(symbols, x + i, y) then
@@ -49,6 +66,10 @@ local function isNumAdjacentToSymbol(symbols, num, x, y)
 	return false
 end
 
+---@param numbers table # map
+---@param x integer
+---@param y integer
+---@return table # list of num strings
 local function getSurroundingNumbers(numbers, x, y)
 	local numMap = {}
 	local deltas = {-1, 0, 1}
@@ -67,13 +88,16 @@ local function getSurroundingNumbers(numbers, x, y)
 	return numList
 end
 
+---@param filename string
+---@param expected? integer
+---@return integer
 local function partOne(filename, expected)
 	local result = 0
 	local engine = loadEngine(filename)
 	local symbols = mapSymbols(engine)
 	for y, line in ipairs(engine) do
 		-- () empty capture == current string position
-		for x, num in string.gmatch(line, "()(%d+)") do
+		for x, num in line:gmatch'()(%d+)' do
 			if isNumAdjacentToSymbol(symbols, num, x, y) then
 				result = result + tonumber(num)
 			end
@@ -85,14 +109,17 @@ local function partOne(filename, expected)
 	return result
 end
 
+---@param filename string
+---@param expected? integer
+---@return integer
 local function partTwo(filename, expected)
 	local result = 0
 	local engine = loadEngine(filename)
 	local numberMap = {}
-	-- build a map of all the digit positions
+	-- build a map of all the number positions
 	for y, line in ipairs(engine) do
 		-- () empty capture == current string position
-		for x, num in string.gmatch(line, "()(%d+)") do
+		for x, num in line:gmatch'()(%d+)' do
 			for i = 0, #num - 1 do
 				local key = x + i ..',' .. y
 				numberMap[key] = num
@@ -102,7 +129,7 @@ local function partTwo(filename, expected)
 	-- for each of the gear '*' positions ...
 	for y, line in ipairs(engine) do
 		-- () empty capture == current string position
-		for x, _ in string.gmatch(line, "()(%*)") do
+		for x, _ in line:gmatch'()(%*)' do
 			local nums = getSurroundingNumbers(numberMap, x, y)
 			if #nums == 2 then
 				local ratio = tonumber(nums[1]) * tonumber(nums[2])
@@ -120,6 +147,7 @@ log.report('part one test %d\n', partOne('03-test.txt', 4361))
 log.report('part one      %d\n', partOne('03-input.txt', 535078))
 log.report('part two test %d\n', partTwo('03-test.txt', 467835))
 log.report('part two      %d\n', partTwo('03-input.txt', 75312571))
+
 -- wasted 3 hours because engine and symbols were not being reset
 -- between running test and input
 -- should have spotted earlier that result was 4361 too high
