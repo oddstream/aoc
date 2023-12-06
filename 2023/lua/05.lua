@@ -9,9 +9,8 @@ local log = require 'log'
 -- maps: seed soil fertilizer water light temperature humidity location
 -- map seed number (thru maps) to location number
 
-local seeds -- list of seed numbers
+local seeds -- list of seed numbers eg {79 14 55 13}
 -- list of maps 1 .. 7 don't care what they are called
--- eg maps[1] = {{range=2, soil=50, seed=98}, {range=48, soil=52, seed=50}}
 -- eg maps[1] = {{50, 98, 2}, {52, 50, 48}}
 local maps = {}
 
@@ -33,7 +32,6 @@ local function loadSeedsAndMaps(filename)
 				for seed in seedlist:gmatch'%d+' do
 					table.insert(seeds, tonumber(seed))
 				end
-				-- log.trace('seedlist=%s\n', seedlist)
 				goto nextline
 			end
 		end
@@ -81,7 +79,6 @@ end
 local function partOne(filename, expected)
 
 	loadSeedsAndMaps(filename)
-	-- log.list(seeds)
 
 	local result = 1/0 -- inf
 
@@ -109,9 +106,12 @@ local function partTwo(filename, expected)
 	-- A quicker brute force is to loop from 0 to infinity and apply the mapping in reverse,
 	-- iterating until the mapped value falls in a seed range.
 	-- The unmapped value is your answer.
-	-- That runs in about 15 seconds for me.
 
-	-- collapse maps into a single seed-to-location map?
+	-- or, collapse maps into a single seed-to-location map?
+	-- the backwards brute force would be quicker because there are fewer numbers to check
+
+	-- for explainations of better solutiuons, see:
+	-- https://old.reddit.com/r/adventofcode/comments/18bimer/2023_day_5_part_2_i_made_bad_choices/
 
 	---@type number
 	local result = 1/0	-- inf
@@ -139,7 +139,7 @@ log.report('part one      %d\n', partOne('05-input.txt', 289863851))
 log.report('part two test %d\n', partTwo('05-test.txt', 46))
 -- log.report('part two      %d\n', partTwo('05-input.txt', 60568880))
 -- part 2, 1 2 num range =  554772016 (but at least Mark II finished)
--- part 2, 3 4 num range =  289863851
+-- part 2, 3 4 num range =  289863851 (that's the part 1 solution!)
 -- part 2, 5 6 num range = 2036266413
 -- part 2, 7 8 num range =   60568880 (it's a bingo!)
 -- part 2, 9 10 num range =  90229603
