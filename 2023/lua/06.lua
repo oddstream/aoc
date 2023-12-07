@@ -3,9 +3,12 @@
 local log = require 'log'
 
 ---@param filename string
----@return table, table
+---@return number[], number[]
+---@nodiscard
 local function readInput1(filename)
+	---@type number[]
 	local times = {}
+	---@type number[]
 	local distances = {}
 	for line in io.lines(filename) do
 		if line:match'^Time: ' then
@@ -23,8 +26,11 @@ end
 
 ---@param filename string
 ---@return number?, number?
+---@nodiscard
 local function readInput2(filename)
+	---@type string
 	local time = ''
+	---@type string
 	local distance = ''
 	for line in io.lines(filename) do
 		if line:match'^Time: ' then
@@ -43,6 +49,7 @@ end
 ---@param filename string
 ---@param expected? integer
 ---@return integer
+---@nodiscard
 local function partOne(filename, expected)
 
 	local times, distances = readInput1(filename)
@@ -71,6 +78,7 @@ end
 ---@param filename string
 ---@param expected? integer
 ---@return integer
+---@nodiscard
 local function partTwo(filename, expected)
 
 	local time, distance = readInput2(filename)

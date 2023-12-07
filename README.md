@@ -10,7 +10,7 @@ The first line of each solution should have a comment linking to the problem des
 
 Solutions should have separate partOne() and partTwo() functions/procedures - no command line flags switching.
 
-Favour readability, eg in Go, use `i += 1` rather than `i++`. Use self-written helper libraries that apply to all days. Eschew regular expressions.
+Favour readability, eg in Go, use `i += 1` rather than `i++`. Use self-written helper libraries that apply to all days. Only simple regular expressions.
 
 Discourage screen clutter, eg in Go use a `switch` rather than a nested cascade of `if else if else`.
 
@@ -18,8 +18,9 @@ Use one logging/trace system, eg in Go use `log.Println`, in Lua use a simple `l
 
 ## Lessons
 
-1. Remove all irrelevant characters from input before processing it. (2023 day 1 part 1)
+1. Remove all irrelevant characters from input before processing it. (2023 day 1 part 1). Ignore all the fluff and just get the values (2023 day 5)
 2. Use maps (2023 day 3)
+3. Brute force can be done in reverse (2023 day 5)
 
 ## Go helper library
 
