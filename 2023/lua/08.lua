@@ -155,7 +155,7 @@ part one      15871
 part two test 6
 part two      11283670395017
 
-real    0m0.042s
-user    0m0.038s
-sys     0m0.004s
+real    0m0.036s
+user    0m0.035s
+sys     0m0.002s
 ]]
