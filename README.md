@@ -10,11 +10,11 @@ The first line of each solution should have a comment linking to the problem des
 
 Solutions should have separate partOne() and partTwo() functions/procedures - no command line flags switching.
 
-Favour readability, eg in Go, use `i += 1` rather than `i++`. Use self-written helper libraries that apply to all days. Only simple regular expressions.
+Favour readability over being clever, for example in Go, use `i += 1` rather than `i++`. Only simple regular expressions.
 
-Discourage screen clutter, eg in Go use a `switch` rather than a nested cascade of `if else if else`.
+Discourage screen clutter, for example in Go use a `switch` rather than a nested cascade of `if else if else`.
 
-Use one logging/trace system, eg in Go use `log.Println`, in Lua use a simple `log` library.
+Use one logging/trace system, for example in Go use `log.Println`, in Lua use a simple `log` library.
 
 ## Lessons
 

@@ -2,22 +2,16 @@
 
 local log = require 'log'
 
-local cardranks -- forward declaration
+local cardOrder -- forward declaration
 
 ---@param hand string
 ---@return number
 local function handScorer(hand)
 
-	local cardmap = {}
+	local handMap = {}
 
 	local function isOfAKind(n)
-		-- local nj
-		-- if jokers then
-		-- 	nj = cardmap.J
-		-- else
-		-- 	nj = 0
-		-- end
-		for _, v in pairs(cardmap) do
+		for _, v in pairs(handMap) do
 			if v == n then
 				return true
 			end
@@ -25,22 +19,9 @@ local function handScorer(hand)
 		return false
 	end
 
-	local function isFullHouse()
-		for _, v in pairs(cardmap) do
-			if v == 3 then
-				for _, v2 in pairs(cardmap) do
-					if v2 == 2 then
-						return true
-					end
-				end
-			end
-		end
-		return false
-	end
-
 	local function countPairs()
 		local twos = 0
-		for _, v in pairs(cardmap) do
+		for _, v in pairs(handMap) do
 			if v == 2 then
 				twos = twos + 1
 			end
@@ -48,42 +29,37 @@ local function handScorer(hand)
 		return twos
 	end
 
-	local function highCard()
-		for _, v in pairs(cardmap) do
-			if v > 1 then
-				return false
-			end
-		end
-		return true
+	for c in cardOrder:gmatch'.' do
+		handMap[c] = 0
+	end
+	for c in hand:gmatch'.' do
+		handMap[c] = handMap[c] + 1
 	end
 
-	for i = 1, #cardranks do
-		cardmap[cardranks:sub(i,i)] = 0
-	end
-	for i = 1, #hand do
-		local c = hand:sub(i,i)
-		cardmap[c] = cardmap[c] + 1
-	end
+	local score
 
-	local score = 0
-
-	if isOfAKind(5) then
+	if isOfAKind(5) then						-- 5
 		score = 7
-	elseif isOfAKind(4) then
+	elseif isOfAKind(4) then					-- 41
 		score = 6
-	elseif isFullHouse() then
-		score = 5
-	elseif isOfAKind(3) then
+	elseif isOfAKind(3) and isOfAKind(2) then	-- 321
+		score = 5	-- full house
+	elseif isOfAKind(3) then					-- 311
 		score = 4
-	elseif countPairs() == 2 then
+	elseif countPairs() == 2 then				-- 221
 		score = 3
-	elseif countPairs() == 1 then
+	elseif countPairs() == 1 then				-- 2111
 		score = 2
-	elseif highCard() then
-		score = 1
 	else
-		log.error('unknown hand %s\n', hand)
+		score = 1 -- high card
 	end
+
+	-- could extract the above numbers from handMap
+	-- and map that value to 7 .. 1
+
+	-- or a generic 'get largest' function that returns the two largest numbers
+
+	-- but then it just gets less readable
 
 	return score
 end
@@ -91,10 +67,9 @@ end
 ---@param hand string
 ---@return number
 local function jokerHandScorer(hand)
-	-- brute force, try every subsitution of Joker and return the highest ranked
+	-- brute force, try every substitution of Joker and return the highest ranked
 	local max = 0
-	for i = 1, #cardranks do
-		local c = cardranks:sub(i,i)
+	for c in cardOrder:gmatch'.' do
 		if c ~= 'J' then
 			local h = hand:gsub('J', c)
 			local s = handScorer(h)
@@ -110,9 +85,9 @@ local function handSorter(a, b)
 	if a.score == b.score then
 		for i = 1, 5 do
 			local ca = a.hand:sub(i,i)
-			local ia = cardranks:find(ca)
+			local ia = cardOrder:find(ca)
 			local cb = b.hand:sub(i,i)
-			local ib = cardranks:find(cb)
+			local ib = cardOrder:find(cb)
 			if ia > ib then
 				return true
 			elseif ia < ib then
@@ -131,20 +106,15 @@ end
 local function partOne(filename, expected)
 	local result = 0
 
-	cardranks = 'AKQJT98765432' -- conventional
+	cardOrder = 'AKQJT98765432' -- conventional
 
 	local hands = {}
 	for line in io.lines(filename) do
-		local hand, bid
-		hand, bid = line:match'(%S+) (%d+)'
-		table.insert(hands, {hand=hand, bid = bid, score=handScorer(hand)})
+		local hand, bid = line:match'(%S+) (%d+)'
+		table.insert(hands, {hand=hand, bid=bid, score=handScorer(hand)})
 	end
 
 	table.sort(hands, handSorter)
-
-	-- for rank, h in pairs(hands) do
-	-- 	log.trace('%d. %s %d, %d %d\n', rank, h.hand, h.score, h.bid, rank * h.bid)
-	-- end
 
 	for i, h in pairs(hands) do
 		local winnings = i * h.bid
@@ -163,20 +133,15 @@ end
 local function partTwo(filename, expected)
 	local result = 0
 
-	cardranks = 'AKQT98765432J'	-- J is the lowest ranked card
+	cardOrder = 'AKQT98765432J'	-- J is the lowest ranked card
 
 	local hands = {}
 	for line in io.lines(filename) do
-		local hand, bid
-		hand, bid = line:match'(%S+) (%d+)'
-		table.insert(hands, {hand=hand, bid = bid, score=jokerHandScorer(hand)})
+		local hand, bid = line:match'(%S+) (%d+)'
+		table.insert(hands, {hand=hand, bid=bid, score=jokerHandScorer(hand)})
 	end
 
 	table.sort(hands, handSorter)
-
-	-- for rank, h in pairs(hands) do
-	-- 	log.trace('%d. %s %d, %d %d\n', rank, h.hand, h.score, h.bid, rank * h.bid)
-	-- end
 
 	for i, h in pairs(hands) do
 		local winnings = i * h.bid
