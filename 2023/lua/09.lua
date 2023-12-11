@@ -1,6 +1,20 @@
 -- https://adventofcode.com/2023/day/9 Mirage Maintenance
 
+-- nb solution could be recursive
+-- and part 2 could use same function as part 1, but with a reversed array
+
 local log = require 'log'
+
+--[[
+---@param x table list of things
+local function reverse(x)
+	local n, m = #x, #x/2
+	for i=1, m do
+		x[i], x[n-i+1] = x[n-i+1], x[i]
+	end
+	-- in-place reversal, nothing to return
+end
+]]
 
 local function all0(nums)
 	for _, v in ipairs(nums) do
@@ -16,8 +30,30 @@ local function diffs(nums)
 	for i = 2, #nums do
 		table.insert(out, nums[i] - nums[i-1])
 	end
+	-- out is never empty
 	return out
 end
+
+--[[
+local function process(history, esrever)
+	if esrever == nil then esrever = false end
+	-- add a 'placeholder' 0 to the end of all history rows
+	for _, row in ipairs(history) do
+		table.insert(row, 0)
+	end
+	if esrever then reverse(history) end
+	for i = #history, 2, -1 do
+		local numsAbove = history[i-1]
+		local numsHere = history[i]
+		local newValue = numsHere[#numsHere] + numsAbove[#numsAbove - 1]
+		assert(numsAbove[#numsAbove] == 0)
+		numsAbove[#numsAbove] = newValue
+	end
+
+	local firstNums = history[1]
+	return firstNums[#firstNums]
+end
+]]
 
 ---@param filename string
 ---@param expected? integer
@@ -36,19 +72,19 @@ local function partOne(filename, expected)
 		repeat
 			nums = diffs(nums)
 			table.insert(history, nums)
-		until #nums == 0 or all0(nums)
+		until all0(nums)
 
+		-- just append a 'placeholder' to the last row of nums
 		table.insert(history[#history], 0)
 
 		for i = #history, 2, -1 do
 			local numsAbove = history[i-1]
 			local numsHere = history[i]
 			local newValue = numsHere[#numsHere] + numsAbove[#numsAbove]
-			table.insert(history[i-1], newValue)
+			table.insert(numsAbove, newValue)
 		end
 
-		local firstNums = history[1]
-		result = result + firstNums[#firstNums]
+		result = result + history[1][#history[1]]	-- last number in first row
 	end
 
 	if expected ~= nil and result ~= expected then
@@ -74,21 +110,18 @@ local function partTwo(filename, expected)
 		repeat
 			nums = diffs(nums)
 			table.insert(history, nums)
-		until #nums == 0 or all0(nums)
+		until all0(nums)
 
-		for i = 1, #history do
-			table.insert(history[i], 1, 0)
-		end
+		table.insert(history[#history], 1, 0)
 
 		for i = #history, 2, -1 do
 			local numsAbove = history[i-1]
 			local numsHere = history[i]
-			local newValue = numsAbove[2] - numsHere[1]
-			history[i-1][1] = newValue
+			local newValue = numsAbove[1] - numsHere[1]
+			table.insert(numsAbove, 1, newValue)
 		end
 
-		local firstNums = history[1]
-		result = result + firstNums[1]
+		result = result + history[1][1] -- first number in first row
 	end
 
 	if expected ~= nil and result ~= expected then
@@ -111,7 +144,7 @@ part one      2043677056
 part two test 2
 part two      1062
 
-real    0m0.040s
-user    0m0.036s
-sys     0m0.002s
+real    0m0.008s
+user    0m0.008s
+sys     0m0.000s
 ]]

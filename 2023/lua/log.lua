@@ -39,13 +39,13 @@ end
 
 function log.map(t)
 	for k, v in pairs(t) do
-		print(k, v)
+		log.report(string.format('%s %s\n', k, v))
 	end
 end
 
 function log.list(t)
 	for k, v in ipairs(t) do
-		print(k, v)
+		log.report(string.format('%d %s\n', k, v))
 	end
 end
 

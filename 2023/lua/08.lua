@@ -109,6 +109,7 @@ local function partTwo(filename, expected)
 
 	-- brute force wasn't going to work (result is 11,283,670,395,017)
 	-- so found the LCM hint on the AOC solutions subreddit (thank you kind strangers)
+	-- https://old.reddit.com/r/adventofcode/comments/18e6vdf/2023_day_8_part_2_an_explanation_for_why_the/
 	-- neat recursive LCM array function from Bing Chat
 	local starts = {}
 	for k, _ in pairs(mp) do
