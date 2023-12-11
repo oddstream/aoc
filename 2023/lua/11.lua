@@ -1,5 +1,9 @@
 -- https://adventofcode.com/2023/day/11 Cosmic Expansion
 
+-- took a complete wrong turn with an actual grid (not needed!) and a BFS (not needed!)
+-- nb LuaJIT is 10x faster than Lua 5.4
+-- could speed it up by using sets for empty rows and cols, instead of a list
+
 local log = require 'log'
 
 local function distance(x1, y1, x2, y2)
@@ -55,9 +59,9 @@ local function partOne(filename, expected)
 		end
 	end
 
-	for i = 1, #stars do
-		print('star at', stars[i].row, stars[i].col)
-	end
+	-- for i = 1, #stars do
+	-- 	print('star at', stars[i].row, stars[i].col)
+	-- end
 
 	local npairs = 0
 	for i = 1, #stars do
@@ -142,8 +146,8 @@ local function partTwo(filename, expected)
 end
 
 log.report('%s\n', _VERSION)
--- log.report('part one test %d\n', partOne('11-test.txt', 374))
--- log.report('part one      %d\n', partOne('11-input.txt', 9918828))
+log.report('part one test %d\n', partOne('11-test.txt', 374))
+log.report('part one      %d\n', partOne('11-input.txt', 9918828))
 -- log.report('part two test %d\n', partTwo('11-test.txt', 0))
 log.report('part two      %d\n', partTwo('11-input.txt', 692506533832))
 
