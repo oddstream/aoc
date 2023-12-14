@@ -2,6 +2,11 @@
 
 local log = require 'log'
 
+-- https://en.wikipedia.org/wiki/Nonzero-rule
+-- https://en.wikipedia.org/wiki/Point_in_polygon
+-- https://en.wikipedia.org/wiki/Even%E2%80%93odd_rule
+-- https://www.reddit.com/media?url=https%3A%2F%2Fi.redd.it%2Finqgpahhuj5c1.png
+
 -- input is 140x140 chars
 -- there is one S at line 51 column 40
 -- there is no branching, just (two reciprocal) paths from start
