@@ -32,7 +32,9 @@ local okDirs = {
 
 local function move(grid, state)
 	local ch = grid[state.y][state.x]
-	for _, dir in ipairs(okDirs[ch]) do
+	local okdirs = okDirs[ch]
+	if not okdirs then return end
+	for _, dir in ipairs(okdirs) do
 		local newx = state.x + dirs[dir].x
 		local newy = state.y + dirs[dir].y
 		local newch =  grid[newy][newx]
@@ -57,36 +59,31 @@ local function moves(grid, state)
 end
 
 ---@param filename string
----@return table, table
+---@return table
 local function loadGrid(filename)
 	local grid = {}
-	local shadow = {}
 	local lineno = 1
 	for line in io.lines(filename) do
 		grid[lineno] = {}
-		shadow[lineno] = {}
 		line = '.' .. line .. '.'
 		for i = 1, #line do
-			table.insert(grid[lineno], line:sub(i,i))
-			table.insert(shadow[lineno], '.')
+			local ch = line:sub(i,i)
+			table.insert(grid[lineno], ch)
 		end
 		lineno = lineno + 1
 	end
 
 	local linelen = #grid[1]
 	table.insert(grid, 1, {})
-	table.insert(shadow, 1, {})
 	table.insert(grid, {})
-	table.insert(shadow, {})
 	for _ = 1, linelen do
 		table.insert(grid[1], '.')
 		table.insert(grid[#grid], '.')
-		table.insert(shadow[1], '.')
-		table.insert(shadow[#shadow], '.')
 	end
 
-	return grid, shadow
+	return grid
 end
+
 
 ---@param grid table
 ---@return table?
@@ -100,42 +97,15 @@ local function findStart(grid)
 	end
 end
 
-local function crossings(shadow, x, y)
-	local n = 0
-	while x > 0 and y > 0 do
-		local ch = shadow[y][x]
-		if ch ~= '.' and (not (ch == '7' or ch == 'L')) then
-			n = n + 1
-		end
-		x = x - 1
-		y = y - 1
-	end
-	return n
-end
-
-local function crossings2(shadow, x, y)
-	local n = 0
-	local row = shadow[y]
-	while x < #row do
-		local ch = row[x]
-		if ch ~= '.' then --and (not (ch == '7' or ch == 'L')) then
-			n = n + 1
-		end
-		x = x + 1
-	end
-	return n
-end
-
 ---@params filename string
 ---@param expected? integer
 ---@return integer
 local function partOne(filename, expected)
 	local result = 0
-
-	local grid, shadow = loadGrid(filename)
+	local grid = loadGrid(filename)
 	local start = findStart(grid)
-	print(grid[start.y][start.x], shadow[start.y][start.x])
-	shadow[start.y][start.x] = 'S'
+	if not start then return -1 end
+	print('start', grid[start.y][start.x], 'at', start.y, start.x)
 	local starts = moves(grid, start)
 
 	for i, pos in ipairs(starts) do
@@ -145,62 +115,22 @@ local function partOne(filename, expected)
 			path_length = path_length + 1
 			local newpos = move(grid, pos)
 			if newpos ~= nil then
-				shadow[pos.y][pos.x] = grid[pos.y][pos.x]
 				grid[pos.y][pos.x] = 'X'
 			end
 			pos = newpos
 		until pos == nil
 		log.trace('%d path length %d\n', i, path_length)
+		-- the longest path is the correct one,
+		-- and it will occur twice, and be an even number
 		if path_length > result then result = path_length end
-
-		if i == 1 then
-			for _, row in ipairs(shadow) do
-				for _, x in ipairs(row) do
-					io.write(x)
-				end
-				io.write('\n')
-			end
---[[
-Imagine a person standing on one of the squares,
-and they shoot a laser in any direction
-except for the four cardinal directions (to prevent the collinearity problem).
-Diagonally, say.
-Now trace that laser starting at the square shooting it until it exits the field.
-If it it's inside the shape, it will cross the boundary an odd number of times,
-if it's outside it will cross an even number of times.
-Be careful if it hits a corner from the outside: it either crosses it twice, or zero times.
-
-The simplest example is if the boundary is just a circle.
-If you're inside the circle and shoot your laser, it will hit it once, on its way out.
-If you're outside the circle it will hit it either zero times (misses the circle entirely)
-or two times (hit once going in, hit once going out).
-The corner case is if your laser is EXACTLY tangent to the circle,
-then it hits it "once" (but really twice, from a mathematical perspective the tangent point is two hits).
-
-It's intuitive for circles, but the concept generalizes to ANY enclosed shape:
-if you hit the shape twice, you've "gone in" and then "gone out".
-But if you were inside from the beginning, there's an extra "gone out",
-so the number of crossings is odd. You just have to be careful about tangents and collinearity.
-]]
-			local inside = 0
-			for y, row in ipairs(shadow) do
-				for x, ch in ipairs(row) do
-					if ch == '.' then
-						local n = crossings(shadow, x, y)
-						if (n > 0) and ((n % 2) == 1) then
-							inside = inside + 1
-						end
-					end
-				end
-			end
-			print('inside', inside)
-		end
 	end
+
 	result = result // 2
 
 	if expected ~= nil and result ~= expected then
 		log.error('part one should be %d\n', expected)
 	end
+
 	return result
 end
 
@@ -210,6 +140,82 @@ end
 local function partTwo(filename, expected)
 	local result = 0
 
+	-- pass #1: load the grid, walk path, build visited map
+	local grid = loadGrid(filename)
+	local visited = {}	-- map of y,x = true
+
+	local function key(y, x)
+		return tostring(y) .. ',' .. tostring(x)
+	end
+
+	local start = findStart(grid)
+	if start == nil then return -1 end
+	print(grid[start.y][start.x], 'at', start.y, start.x)
+	local starts = moves(grid, start)
+	local pos = starts[1]
+	visited[key(pos.y, pos.x)] = true
+	-- grid[pos.y][pos.x] = '|'
+	local path_length = 0
+	repeat
+		path_length = path_length + 1
+		local newpos = move(grid, pos)
+		if newpos ~= nil then
+			grid[pos.y][pos.x] = 'X'
+			visited[key(newpos.y, newpos.x)] = true
+		end
+		pos = newpos
+	until pos == nil
+	print(1, path_length // 2)
+
+	-- pass #2: use in/out algo to count tiles inside path
+
+	grid = loadGrid(filename)
+
+	-- for y = 1, #grid do
+	-- 	for x = 1, #grid[y] do
+	-- 		if visited[key(y,x)] then
+	-- 			io.write(grid[y][x])
+	-- 		else
+	-- 			io.write(' ')
+	-- 		end
+	-- 	end
+	-- 	io.write('\n')
+	-- end
+
+	local n = 0	for _, _ in pairs(visited) do n = n + 1 end	print(n, 'visited', n//2)
+
+	for y = 1, #grid do
+		local inside = false
+		local count = 0
+		for x = 1, #grid[y] do
+			local ch = grid[y][x]
+			if ch == 'S' then ch = 'F' end	-- KLUDGE! KLUDGE! KLUDGE!
+			-- "Any tile that isn't part of the main loop can count as being enclosed by the loop."
+			if visited[key(y,x)] then
+				if ch == '|' or ch == 'L' or ch == 'J' then
+					inside = not inside
+				end
+			else
+				if inside then
+					count = count + 1
+				end
+			end
+		end
+		result = result + count
+	end
+--[[
+	print('grid is', #grid, #grid[1])	-- 140 140 (plus border)
+	local dots = 0
+	for y = 1, #grid do
+		for x = 1, #grid[y] do
+			local ch = grid[y][x]
+			if ch == '.' then
+				dots = dots + 1
+			end
+		end
+	end
+	print(dots, 'dots')	-- 507
+]]
 	if expected ~= nil and result ~= expected then
 		log.error('part two should be %d\n', expected)
 	end
@@ -219,12 +225,11 @@ end
 log.report('%s\n', _VERSION)
 -- log.report('part one test1 %d\n', partOne('10-test1.txt', 4))
 -- log.report('part one test2 %d\n', partOne('10-test2.txt', 8))
-log.report('part one       %d\n', partOne('10-input.txt', 7145))
--- part 2 490 too high
--- part 2 445
 -- log.report('part one test3 %d\n', partOne('10-test3.txt', 4))
--- log.report('part one test3 %d\n', partOne('10-test4.txt', 8))
+-- log.report('part one test4 %d\n', partOne('10-test4.txt', 8))
+log.report('part one       %d\n', partOne('10-input.txt', 7145))
 
--- log.report('part two test %d\n', partTwo(0))
--- log.report('part two      %d\n', partTwo(0))
-
+-- log.report('part two test1 %d\n', partTwo('10-test1.txt', 1)) -- S is an F
+-- log.report('part two test3 %d\n', partTwo('10-test3.txt', 4)) -- S is an F
+-- log.report('part two test4 %d\n', partTwo('10-test4.txt', 10)) -- S is ...
+log.report('part two       %d\n', partTwo('10-input.txt', 445)) -- S is an F?

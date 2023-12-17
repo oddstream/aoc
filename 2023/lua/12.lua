@@ -3,7 +3,10 @@
 -- largest number in input's damaged list = 16
 -- longest run of consecutive ? is ????????????????? = 17
 
+-- the numbers could be expanded into regex (e.g. 1,1,3 == .*#.+#.+###.*) b
+
 -- see https://old.reddit.com/r/adventofcode/comments/18hbbxe/2023_day_12python_stepbystep_tutorial_with_bonus/
+-- https://old.reddit.com/r/adventofcode/comments/18hbjdi/2023_day_12_part_2_this_image_helped_a_few_people/?utm_source=reddit&utm_medium=usertext&utm_name=adventofcode&utm_content=t1_kd5xzfs
 
 local log = require 'log'
 
@@ -154,7 +157,7 @@ end
 
 log.report('%s\n', _VERSION)
 -- createPermCache()
--- log.report('part one test  %d\n', partOne('12-test.txt', 21))
+log.report('part one test  %d\n', partOne('12-test.txt', 21))
 log.report('part one      %d\n', partOne('12-input.txt', 7236))
 -- log.report('part two test %d\n', partTwo('12-test.txt', 525152))
 -- log.report('part two      %d\n', partTwo('12-input.txt', 11607695322318))
