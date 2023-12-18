@@ -16,7 +16,7 @@ local function partOne(filename, expected)
 		log.trace(line)
 	end
 
-	if expected ~= nil and result ~= expected then
+	if expected and result ~= expected then
 		log.error('part one should be %d\n', expected)
 	end
 	return result
@@ -35,7 +35,7 @@ local function partTwo(filename, expected)
 		log.trace(line)
 	end
 
-	if expected ~= nil and result ~= expected then
+	if expected and result ~= expected then
 		log.error('part two should be %d\n', expected)
 	end
 	return result

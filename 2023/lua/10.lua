@@ -11,14 +11,16 @@ local log = require 'log'
 -- there is one S at line 51 column 40
 -- there is no branching, just (two reciprocal) paths from start
 
+-- throughout, use a table like {x=3, y=4} as a pos
+-- surround grid with a border to avoid tedious bounds checking
+-- Lua 5.4 only, as we are using integer division
+
 local dirs = {
 	['n'] = {x=0, y=-1},
 	['e'] = {x=1, y=0},
 	['s'] = {x=0, y=1},
 	['w'] = {x=-1, y=0},
 }
-
--- state: x, y, dir, steps
 
 local okDirs = {
 	['S'] = {'n','e','w','s'},
@@ -30,6 +32,10 @@ local okDirs = {
 	['7'] = {'w','s'},
 }
 
+---Return next pos from input pos, or nil
+---@param grid table[]
+---@param state table
+---@return table?
 local function move(grid, state)
 	local ch = grid[state.y][state.x]
 	local okdirs = okDirs[ch]
@@ -44,6 +50,10 @@ local function move(grid, state)
 	end
 end
 
+---Returns list of possible pos-es from input pos
+---@param grid table[]
+---@param state table
+---@return table[]
 local function moves(grid, state)
 	local out = {}
 	local ch = grid[state.y][state.x]
@@ -84,7 +94,7 @@ local function loadGrid(filename)
 	return grid
 end
 
-
+---Returns pos of 'S' in grid. could be done when loading grid, I dunno.
 ---@param grid table
 ---@return table?
 local function findStart(grid)
@@ -150,14 +160,13 @@ local function partTwo(filename, expected)
 
 	local start = findStart(grid)
 	if start == nil then return -1 end
-	print(grid[start.y][start.x], 'at', start.y, start.x)
 	local starts = moves(grid, start)
-	local pos = starts[1]
+	local pos = starts[1]	-- we get the 1 from output of part 1
 	visited[key(pos.y, pos.x)] = true
 	-- grid[pos.y][pos.x] = '|'
-	local path_length = 0
+	-- local path_length = 0
 	repeat
-		path_length = path_length + 1
+		-- path_length = path_length + 1
 		local newpos = move(grid, pos)
 		if newpos ~= nil then
 			grid[pos.y][pos.x] = 'X'
@@ -165,7 +174,7 @@ local function partTwo(filename, expected)
 		end
 		pos = newpos
 	until pos == nil
-	print(1, path_length // 2)
+	-- print(1, path_length // 2)
 
 	-- pass #2: use in/out algo to count tiles inside path
 
@@ -182,20 +191,20 @@ local function partTwo(filename, expected)
 	-- 	io.write('\n')
 	-- end
 
-	local n = 0	for _, _ in pairs(visited) do n = n + 1 end	print(n, 'visited', n//2)
+	-- local n = 0	for _, _ in pairs(visited) do n = n + 1 end	print(n, 'visited', n//2)
 
 	for y = 1, #grid do
 		local inside = false
 		local count = 0
 		for x = 1, #grid[y] do
 			local ch = grid[y][x]
-			if ch == 'S' then ch = 'F' end	-- KLUDGE! KLUDGE! KLUDGE!
-			-- "Any tile that isn't part of the main loop can count as being enclosed by the loop."
+			-- if ch == 'S' then ch = 'J' end	-- KLUDGE! KLUDGE! KLUDGE! Can be S7F- but not |LJ
 			if visited[key(y,x)] then
 				if ch == '|' or ch == 'L' or ch == 'J' then
 					inside = not inside
 				end
 			else
+			-- "Any tile that isn't part of the main loop can count as being enclosed by the loop."
 				if inside then
 					count = count + 1
 				end
@@ -233,3 +242,22 @@ log.report('part one       %d\n', partOne('10-input.txt', 7145))
 -- log.report('part two test3 %d\n', partTwo('10-test3.txt', 4)) -- S is an F
 -- log.report('part two test4 %d\n', partTwo('10-test4.txt', 10)) -- S is ...
 log.report('part two       %d\n', partTwo('10-input.txt', 445)) -- S is an F?
+
+--[[
+$ time lua54 10.lua
+Lua 5.4
+start   S       at      52      41
+1 path length 14290
+2 path length 14247
+3 path length 14290
+4 path length 14246
+part one       7145
+S       at      52      41
+1       7145
+14290   visited 7145
+part two       445
+
+real    0m0.183s
+user    0m0.166s
+sys     0m0.008s
+]]
