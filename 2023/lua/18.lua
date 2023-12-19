@@ -164,7 +164,8 @@ local function shoelace(filename, part, expected)
 		return ssum(0, ps[#ps], table.unpack(ps))
 	end
 
-	local dirs = {U={x=0, y=-1}, R={x=1, y=0}, L={x=-1, y=0}, D={x=0, y=1}}
+	local dirs = {U={x=0, y=-1}, R={x=1, y=0}, L={x=-1, y=0}, D={x=0, y=1},
+				['3']={x=0, y=-1}, ['0']={x=1, y=0}, ['2']={x=-1, y=0}, ['1']={x=0, y=1}}
 	local walls = {}
 	local x, y = 1,1
 	for line in io.lines(filename) do
@@ -172,15 +173,6 @@ local function shoelace(filename, part, expected)
 		if part == 2 then
 			local hexdist = tonumber(hex:sub(1,5), 16)
 			local hexdir = hex:sub(6,6)
-			if hexdir == '0' then
-				hexdir = 'R'
-			elseif hexdir == '1' then
-				hexdir = 'D'
-			elseif hexdir == '2' then
-				hexdir = 'L'
-			elseif hexdir == '3' then
-				hexdir = 'U'
-			end
 			n = hexdist
 			dir = hexdir
 		end
