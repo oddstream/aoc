@@ -190,8 +190,6 @@ local function run(grid, mindist, maxdist)
 		for direction = 1, 4 do
 			local costincrease = 0
 			if direction == dd or oppdir(direction) == dd then -- 94,1392
-			-- if direction == dd then -- 94,1363
-			-- if direction == dd or (direction + 2) % 4 == dd then -- 94,1374
 				goto nextdirection
 			end
 			for distance = 1, maxdist do

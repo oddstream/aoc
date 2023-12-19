@@ -17,7 +17,7 @@ local function partOne(filename, expected)
 	end
 
 	if expected and result ~= expected then
-		log.error('part one should be %d\n', expected)
+		log.error('expected %d\n', expected)
 	end
 	return result
 end
@@ -36,7 +36,7 @@ local function partTwo(filename, expected)
 	end
 
 	if expected and result ~= expected then
-		log.error('part two should be %d\n', expected)
+		log.error('expected %d\n', expected)
 	end
 	return result
 end
