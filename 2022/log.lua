@@ -29,4 +29,24 @@ function log.trace(fmt, ...)
 	l('blue', fmt, ...)
 end
 
+function log.error(fmt, ...)
+	l('red', fmt, ...)
+end
+
+function log.info(fmt, ...)
+	l('cyan', fmt, ...)
+end
+
+function log.map(t)
+	for k, v in pairs(t) do
+		log.report(string.format('%s %s\n', k, v))
+	end
+end
+
+function log.list(t)
+	for k, v in ipairs(t) do
+		log.report(string.format('%d %s\n', k, v))
+	end
+end
+
 return log

@@ -8,6 +8,23 @@
 -- see https://old.reddit.com/r/adventofcode/comments/18hbbxe/2023_day_12python_stepbystep_tutorial_with_bonus/
 -- https://old.reddit.com/r/adventofcode/comments/18hbjdi/2023_day_12_part_2_this_image_helped_a_few_people/?utm_source=reddit&utm_medium=usertext&utm_name=adventofcode&utm_content=t1_kd5xzfs
 
+-- see
+-- https://old.reddit.com/r/adventofcode/comments/18ge41g/2023_day_12_solutions/kd3rclt/
+-- for a good looking Go solution
+
+--[[
+	each line/record consists of a
+		. operational spring
+		# damaged spring
+		? unknown spring
+
+		sizes of each contiguous group of damaged springs, comma separated
+	eg
+		#### 4 (not #### 2,2)
+		#.#.### 1,1,3
+		####.#...#... 4,1,1
+]]
+
 local log = require 'log'
 
 ---@param i integer the number to turn into a 'binary' string
@@ -67,24 +84,21 @@ local function hashruns2nums(str)
 	return out
 end
 
---[[
 local permCache = {}
-local function createPermCache()
-	for i = 1, 17 do
+
+local function createPermCache(size)
+	for i = 1, size do
 		local arr = {}
 		for perm in permutations(i) do
-			local test = ('%s%s%s'):format(
-				perm:sub(1, i-1),
-				perm,
-				perm:sub(i+1, #springs))
-			testperms(test, damaged)
-
+			-- local test = ('%s%s%s'):format(
+			-- 	perm:sub(1, i-1),
+			-- 	perm,
+			-- 	perm:sub(i+1, #perm))
 			table.insert(arr, perm)
 		end
 		permCache[i] = arr
 	end
 end
-]]
 
 ---@param filename string
 ---@param reps integer
@@ -109,6 +123,7 @@ local function solve(filename, reps)
 				testperms(test, damaged)
 			end
 		else
+			-- we have finished generating permutations, test the result
 			local nums = hashruns2nums(springs)
 			if nums == damaged then
 				result = result + 1
@@ -119,15 +134,34 @@ local function solve(filename, reps)
 		end
 	end
 
+	local function testpermsCached(springs, damaged)
+		local start, stop = string.find(springs, '%?+')
+		if start ~= nil then
+			local n = stop-start+1
+			local perms = permCache[n]
+			for _, perm in ipairs(perms) do
+				local test = springs:sub(1, start-1) .. perm .. springs:sub(stop+1, #springs)
+				testpermsCached(test, damaged)
+			end
+		else
+			local nums = hashruns2nums(springs)
+			if nums == damaged then
+				result = result + 1
+			end
+		end
+	end
+
 	-- local lineno = 1
 	for line in io.lines(filename) do
 		local springs, damaged = line:match'([%?%.%#]+) ([%d,]+)'
 		-- log.trace('springs=%s damaged=%s\n', springs, damaged)
+		-- replace the list of spring conditions with five copies of itself (separated by ?)
 		springs = string.rep(springs, reps, '?')
+		-- replace the list of contiguous groups of damaged springs with five copies of itself (separated by ,)
 		damaged = string.rep(damaged, reps, ',')
 		-- lineno = lineno + 1
 		-- log.trace('line %d\n', lineno)
-		testperms(springs, damaged)
+		testpermsCached(springs, damaged)
 	end
 
 	return result
@@ -139,7 +173,7 @@ end
 local function partOne(filename, expected)
 	local result = solve(filename, 1)
 	if expected ~= nil and result ~= expected then
-		log.error('part one should be %d\n', expected)
+		log.error('expected %d\n', expected)
 	end
 	return result
 end
@@ -148,16 +182,38 @@ end
 ---@param expected? integer
 ---@return integer
 local function partTwo(filename, expected)
-	local result = solve(filename, 2)
+	local result = solve(filename, 5)
 	if expected ~= nil and result ~= expected then
-		log.error('part two should be %d\n', expected)
+		log.error('expected %d\n', expected)
 	end
 	return result
 end
 
 log.report('%s\n', _VERSION)
--- createPermCache()
-log.report('part one test  %d\n', partOne('12-test.txt', 21))
-log.report('part one      %d\n', partOne('12-input.txt', 7236))
--- log.report('part two test %d\n', partTwo('12-test.txt', 525152))
+createPermCache(17)
+-- log.report('part one test %d\n', partOne('12-test.txt', 21))
+-- log.report('part one      %d\n', partOne('12-input.txt', 7236))
+log.report('part two test %d\n', partTwo('12-test.txt', 525152))
 -- log.report('part two      %d\n', partTwo('12-input.txt', 11607695322318))
+
+--[[
+with perm cache
+$ time lua54 12.lua
+Lua 5.4
+part one test 21
+part one      7236
+
+real	0m18.773s
+user	0m18.743s
+sys	0m0.020s
+
+without perm cache
+$ time lua54 12.lua
+Lua 5.4
+part one test 21
+part one      7236
+
+real	0m21.489s
+user	0m21.481s
+sys	0m0.008s
+]]

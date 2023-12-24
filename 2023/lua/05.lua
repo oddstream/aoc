@@ -110,13 +110,13 @@ local function partTwo(filename, expected)
 	-- or, collapse maps into a single seed-to-location map?
 	-- the backwards brute force would be quicker because there are fewer numbers to check
 
-	-- for explainations of better solutiuons, see:
+	-- for explanations of better solutions, see:
 	-- https://old.reddit.com/r/adventofcode/comments/18bimer/2023_day_5_part_2_i_made_bad_choices/
 
 	---@type number
 	local result = 1/0	-- inf
 
-	-- seeds = {seeds[9], seeds[10]}	-- knobble for incremental testing
+	seeds = {seeds[7], seeds[8]}	-- knobble for incremental testing
 
 	for i = 1, #seeds, 2 do
 		local seed1 = seeds[i]
@@ -136,10 +136,29 @@ end
 log.report('%s\n', _VERSION)
 log.report('part one test %d\n', partOne('05-test.txt', 35))
 log.report('part one      %d\n', partOne('05-input.txt', 289863851))
-log.report('part two test %d\n', partTwo('05-test.txt', 46))
+-- log.report('part two test %d\n', partTwo('05-test.txt', 46))
 -- log.report('part two      %d\n', partTwo('05-input.txt', 60568880))
 -- part 2, 1 2 num range =  554772016 (but at least Mark II finished)
 -- part 2, 3 4 num range =  289863851 (that's the part 1 solution!)
 -- part 2, 5 6 num range = 2036266413
 -- part 2, 7 8 num range =   60568880 (it's a bingo!)
 -- part 2, 9 10 num range =  90229603
+
+--[[
+$ time luajit 05.lua
+Lua 5.1
+part one test 35
+part one      289863851
+
+real	0m0.006s
+user	0m0.006s
+sys	0m0.000s
+
+$ time luajit 05.lua # seeds = {seeds[7], seeds[8]}
+Lua 5.1
+part two      60568880
+
+real	3m26.978s
+user	3m26.424s
+sys	0m0.044s
+]]
