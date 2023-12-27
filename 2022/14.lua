@@ -66,6 +66,11 @@ local dirs = {
 	{x=1, y=1},	-- down right
 }
 
+---@param map table
+---@param maxy integer
+---@param x integer
+---@param y integer
+---@return boolean false if sand falls into the void
 local function dropsand1(map, maxy, x, y)
 	repeat
 		local fallen = false
@@ -87,6 +92,11 @@ local function dropsand1(map, maxy, x, y)
 	return true
 end
 
+---@param map table
+---@param maxy integer
+---@param x integer
+---@param y integer
+---@return boolean false if sand falls into the void
 local function dropsand2(map, maxy, x, y)
 	if map[key(x,y)] then
 		return false
@@ -148,7 +158,7 @@ local function partOne(filename, expected)
 
 	local map, maxy = loadMap(filename)
 
-	print('void after', maxy)
+	-- print('void after', maxy)
 
 	while dropsand1(map, maxy, 500,0) do
 		-- showmap1(map)
@@ -181,8 +191,8 @@ local function partTwo(filename, expected)
 end
 
 log.report('%s\n', _VERSION)
--- log.report('part one test %d\n', partOne('14-input-test.txt', 24))
--- log.report('part one      %d\n', partOne('14-input.txt', 1001))
+log.report('part one test %d\n', partOne('14-input-test.txt', 24))
+log.report('part one      %d\n', partOne('14-input.txt', 1001))
 log.report('part two test %d\n', partTwo('14-input-test.txt', 93))
 log.report('part two      %d\n', partTwo('14-input.txt', 27976))
 
