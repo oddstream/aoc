@@ -18,11 +18,6 @@ type Position struct {
 	x, y, moves int
 }
 
-// Pointy interface enables an object to return/produce a Point
-type Pointy interface {
-	point() Point
-}
-
 func (p Position) point() Point {
 	return Point{x: p.x, y: p.y}
 }
@@ -70,7 +65,7 @@ func bfs1(start Position, stop Point) int {
 			}
 			if _, ok := seen[np.point()]; !ok {
 				if !wall(np.x, np.y) {
-					seen[Point{np.x, np.y}] = struct{}{}
+					seen[np.point()] = struct{}{}
 					np.moves = p.moves + 1
 					if np.x == stop.x && np.y == stop.y {
 						return np.moves
