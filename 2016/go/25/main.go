@@ -79,7 +79,7 @@ func run(program []Instruction, initiala int) bool {
 			} else {
 				pc = pc + 1
 			}
-		// case "tgl": removed as that instruction does no appear in the input
+		// case "tgl": removed as that instruction does not appear in the input
 		case "out":
 			// out x transmits x (either an integer or the value of a register) as
 			// the next value for the clock signal.
@@ -105,7 +105,7 @@ func run(program []Instruction, initiala int) bool {
 			pc = pc + 1
 		}
 		cycles += 1
-		if cycles > 100000 {
+		if cycles > 100000 { // arrived at by trial and error
 			if collected > 1 {
 				fmt.Println(initiala, "collected", collected, "alternating binary digits before cycles exceeded")
 			}
@@ -132,7 +132,7 @@ func main() {
 	if err := scanner.Err(); err != nil {
 		fmt.Println(err)
 	}
-	for i := 0; i < 200; i++ {
+	for i := 0; i < 200; i++ { // arrived at by trial and error
 		run(program, i)
 	}
 }
