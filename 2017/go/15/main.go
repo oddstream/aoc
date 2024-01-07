@@ -11,14 +11,14 @@ func duration(invocation time.Time, name string) {
 }
 
 func partOne(a, b int) int {
-	// defer duration(time.Now(), "part 1")
+	defer duration(time.Now(), "part 1")
 
 	var result int
-	for i := 0; i < 40000000; i++ {
+	for i := 0; i < 40e6; i++ {
 		a *= 16807
-		a = a % 2147483647
+		a %= 2147483647
 		b *= 48271
-		b = b % 2147483647
+		b %= 2147483647
 		if a&0xffff == b&0xffff {
 			result += 1
 		}
@@ -27,7 +27,7 @@ func partOne(a, b int) int {
 }
 
 func partTwo(a, b int) int {
-	// defer duration(time.Now(), "part 2")
+	defer duration(time.Now(), "part 2")
 
 	var result int
 	cha := make(chan int)
@@ -37,11 +37,11 @@ func partTwo(a, b int) int {
 		var count int
 		for {
 			a *= 16807
-			a = a % 2147483647
+			a %= 2147483647
 			if a%4 == 0 {
 				cha <- a
 				count += 1
-				if count == 5000000 {
+				if count == 5e6 {
 					break
 				}
 			}
@@ -53,11 +53,11 @@ func partTwo(a, b int) int {
 		var count int
 		for {
 			b *= 48271
-			b = b % 2147483647
+			b %= 2147483647
 			if b%8 == 0 {
 				chb <- b
 				count += 1
-				if count == 5000000 {
+				if count == 5e6 {
 					break
 				}
 			}
