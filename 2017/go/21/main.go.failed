@@ -1,0 +1,347 @@
+package main
+
+import (
+	"bufio"
+	_ "embed"
+	"fmt"
+	"math"
+	"strings"
+	"time"
+)
+
+//go:embed input.txt
+var input string
+
+var startingPattern = `.#.
+..#
+###`
+
+func duration(invocation time.Time, name string) {
+	fmt.Println(name, time.Since(invocation))
+}
+
+type RuleMap map[string]string
+
+// flipy: invert y, the lazy way
+func flipy(in string) string {
+	lines := strings.Split(in, "/")
+	var out string
+	switch len(lines) {
+	case 2:
+		out = lines[1] + "/" + lines[0]
+	case 3:
+		out = lines[2] + "/" + lines[1] + "/" + lines[0]
+	case 4:
+		out = lines[3] + "/" + lines[2] + "/" + lines[1] + "/" + lines[0]
+	default:
+		panic("flip: unknown size")
+	}
+	return out
+}
+
+func reverse(s string) string {
+	runes := []rune(s)
+	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+		runes[i], runes[j] = runes[j], runes[i]
+	}
+	return string(runes)
+}
+
+// flipx: invert x
+func flipx(in string) string {
+	lines := strings.Split(in, "/")
+	n := len(lines)
+	var out []string = make([]string, n)
+	for i := 0; i < n; i++ {
+		out[i] = reverse(lines[i])
+	}
+	return strings.Join(out, "/")
+}
+
+// transpose: write columns of in as rows of out
+// https://en.wikipedia.org/wiki/Transpose
+func transpose(in string) string {
+	lines := strings.Split(in, "/")
+	n := len(lines)
+	out := make([]string, n)
+	for x := 0; x < n; x++ {
+		for y := 0; y < n; y++ {
+			out[x] += string(lines[y][x])
+		}
+	}
+	return strings.Join(out, "/")
+}
+
+func rotate(in string) string {
+	out := transpose(in)
+	return flipy(out)
+}
+
+func count(s string, ch rune) int {
+	var count int
+	for _, c := range s {
+		if c == ch {
+			count += 1
+		}
+	}
+	return count
+}
+
+// size, clunky version: number of / + 1
+func size(s string) int {
+	return count(s, '/') + 1
+}
+
+func square(s string) bool {
+	grid := strings.Split(s, "/")
+	return len(grid) == len(grid[0])
+}
+
+func split(in string) []string {
+	var out []string
+
+	grid := strings.Split(in, "/")
+	if len(grid) != len(grid[0]) {
+		fmt.Println("split input is not square", grid)
+	}
+	if len(grid) == 2 {
+		out = append(out, in)
+	} else if len(grid)%2 == 0 {
+		// turn abcd/efgh/ijkl/mnop ...
+		// abcd
+		// efgh
+		// ijkl
+		// mnop
+		// ... into [ab/ef cd/gh ij/mn kl/op] ...
+		// ab cd
+		// ef gh
+		//
+		// ij kl
+		// mn op
+		// fmt.Println(len(grid), "div by 2", in)
+		for y := 0; y < len(grid); y += 2 {
+			for x := 0; x < len(grid[y]); x += 2 {
+				out = append(out,
+					string(grid[y][x])+string(grid[y][x+1])+
+						"/"+
+						string(grid[y+1][x])+string(grid[y+1][x+1]))
+			}
+		}
+	} else if len(grid) == 3 {
+		out = append(out, in)
+	} else if len(grid)%3 == 0 {
+		// fmt.Println(len(grid), "div by 3", in)
+		for y := 0; y < len(grid); y += 3 {
+			for x := 0; x < len(grid[y]); x += 3 {
+				out = append(out,
+					string(grid[y][x])+string(grid[y][x+1])+string(grid[y][x+2])+
+						"/"+
+						string(grid[y+1][x])+string(grid[y+1][x+1])+string(grid[y+1][x+2])+
+						"/"+
+						string(grid[y+2][x])+string(grid[y+2][x+1])+string(grid[y+2][x+2]))
+			}
+		}
+	} else {
+		panic("div by ??")
+	}
+	grid = strings.Split(in, "/")
+	if len(grid) != len(grid[0]) {
+		fmt.Println("split output is not square", grid)
+	}
+	return out
+}
+
+// 4 of 3x3 ["abc/def/ghi" "mno/pqr/stu" "ABC/DEF/GHI" "MNO/PQR/STU"]
+// abc|mno
+// def|pqr
+// ghi|stu
+// ---+---
+// ABC|MNO
+// DEF|PQR
+// GHI|STU
+
+// 4 of 3x3 [[abc][def][ghi] [mno][pqr][stu] [ABC][DEF][GHI] [MNO][PQR][STU]]
+
+// 00 + 10 / 01 + 11 / 02 + 12 / 20 + 30 / 21 + 31 / 22 + 32
+
+// 1 of 6x6 "abcmno/defpqr/ghistu/ABCMNO/DEFPQR/GHISTU"
+// abcmno
+// defpqr
+// ghistu
+// ABCMNO
+// DEFPQR
+// GHISTU
+
+func join(in []string) string {
+	// if len(in) != size(in[0]) {
+	// 	fmt.Println("join input is not square", in)
+	// 	return ""
+	// }
+	if len(in) == 1 {
+		return in[0]
+	}
+	var grps [][]string
+	for _, grp := range in {
+		subs := strings.Split(grp, "/")
+		grps = append(grps, subs)
+	}
+	// fmt.Println(in)
+	// fmt.Println(grps)
+	// fmt.Println()
+
+	outer := int(math.Sqrt(float64(len(in))))
+	inner := size(in[0])
+	// fmt.Println("outer:", outer, "inner:", inner)
+
+	var res []string
+	for i := 0; i < len(grps); i += outer {
+		for j := i; j < i+outer; j++ {
+			var s string
+			for k := 0; k < inner; k++ {
+				s += grps[j][k]
+			}
+			res = append(res, s)
+			// fmt.Println(i, j, s)
+		}
+	}
+	if len(res) != len(res[0]) {
+		fmt.Println("join output is not square", res)
+	}
+	return strings.Join(res, "/")
+}
+
+func run(rules RuleMap, in string) string {
+	arr := split(in)
+	var out []string
+	for _, s := range arr {
+		res := rules[s]
+		// res = strings.ReplaceAll(res, "/", "")
+		out = append(out, res)
+	}
+	return join(out)
+}
+
+func loadRules() RuleMap {
+	var rm RuleMap = make(RuleMap)
+
+	insertrule := func(k, v string) {
+		if found, ok := rm[k]; ok {
+			if found != v {
+				fmt.Println("error:", k, "already in map as something else:")
+			}
+		} else {
+			rm[k] = v
+		}
+		if !square(k) {
+			fmt.Println("k not square", v)
+		}
+		if !square(v) {
+			fmt.Println("v not square", v)
+		}
+	}
+
+	scanner := bufio.NewScanner(strings.NewReader(input))
+	for scanner.Scan() {
+		var left, right string
+		if n, err := fmt.Sscanf(scanner.Text(), "%s => %s", &left, &right); n != 2 {
+			fmt.Println(err)
+			break
+		}
+
+		for _, s := range []string{left, flipx(left), flipy(left)} {
+			insertrule(s, right)
+			for i := 0; i < 3; i++ {
+				s = rotate(s) // rotate 90, 180, 270
+				insertrule(s, right)
+			}
+		}
+
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(len(rm), "rules") // 528 (duplicates removed)
+	return rm
+}
+
+func partOne() int {
+	defer duration(time.Now(), "part 1")
+
+	rules := loadRules()
+	start := ".#./..#/###"
+
+	if out, ok := rules[start]; ok {
+		fmt.Println("0)", start, ":=", out)
+	} else {
+		fmt.Println("not found:", start)
+	}
+
+	// fmt.Println("2x2", split("12/34"))
+	// fmt.Println("3x3", split("123/456/789"))
+	// fmt.Println("4x4", split("abcd/efgh/ijkl/mnop"))
+	// fmt.Println("6x6", split("abcdef/ghijkl/mnopqr/stuvwx/012345/678901"))
+	// fmt.Println("9x9", split("abcdef000/ghijkl111/mnopqr222/stuvwx333/012345aaa/678901bbb/678901bbb/678901bbb/678901bbb"))
+
+	test := func(s string) {
+		fmt.Println("test input", s)
+		spl := split(s)
+		fmt.Println("test split", spl)
+		jio := join(spl)
+		fmt.Println("test join", jio)
+	}
+
+	test("123/456/789")
+	test("abcd/efgh/ijkl/mnop")
+	test("abcdef/ghijkl/mnopqr/stuvwx/012345/678901")
+
+	// fmt.Print("1) ", start, " := ")
+	// start = run(rules, start)
+	// fmt.Println(start)
+
+	// fmt.Print("2) ", start, " := ")
+	// start = run(rules, start)
+	// fmt.Println(start)
+
+	// fmt.Print("3) ", start, " := ")
+	// start = run(rules, start)
+	// fmt.Println(start)
+
+	// for i := 0; i < 5; i++ {
+	// 	start = run(rules, start)
+	// }
+	return count(start, '#')
+}
+
+func main() {
+	defer duration(time.Now(), "main")
+
+	fmt.Println(startingPattern)
+
+	{
+		var str = "123/456/789"
+		var grid [][]string
+		for _, line := range strings.Split(str, "/") {
+			fmt.Println(line, strings.Split(line, ""))
+			grid = append(grid, strings.Split(line, ""))
+		}
+		fmt.Println(grid)
+	}
+
+	// fmt.Println(partOne()) // 162 not 81 (which is half of 162)
+	// fmt.Println(partTwo()) // 2264586
+
+	// fmt.Println(flipy("12/34"))       // 34/12
+	// fmt.Println(flipy("123/456/789")) // 789/456/123
+	// fmt.Println()
+	// fmt.Println(flipx("12/34"))       // 21/43
+	// fmt.Println(flipx("123/456/789")) // 321/654/987
+	// fmt.Println()
+	// fmt.Println(transpose("12/34"))               // 13/24
+	// fmt.Println(transpose("123/456/789"))         // 147/258/369
+	// fmt.Println(transpose("abcd/efgh/ijkl/mnop")) // aeim/bfjn/cgko/dhlp
+
+}
+
+/*
+$ go run main.go
+*/
