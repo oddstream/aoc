@@ -1,0 +1,138 @@
+// https://adventofcode.com/2018/day/5 Alchemical Reduction
+package main
+
+import (
+	_ "embed"
+	"fmt"
+	"math"
+	"strings"
+	"time"
+)
+
+//go:embed input.txt
+var input []byte // remove trailing \n
+
+func duration(invocation time.Time, name string) {
+	fmt.Println(name, time.Since(invocation))
+}
+
+func removeCharacters(input string, characters string) string {
+	filter := func(r rune) rune {
+		if !strings.ContainsRune(characters, r) {
+			return r
+		}
+		return -1
+	}
+	return strings.Map(filter, input)
+}
+
+func removeAdjacentPairs(s string) string {
+	if len(s) < 2 {
+		return s
+	}
+	var stack []byte
+	for i := 0; i < len(s); i++ {
+		if len(stack) > 0 && (stack[len(stack)-1] == s[i]+32 || stack[len(stack)-1] == s[i]-32) {
+			stack = stack[:len(stack)-1]
+		} else {
+			stack = append(stack, s[i])
+		}
+	}
+	return string(stack)
+}
+
+func react(a []byte) int {
+	var changed bool
+	for {
+		// fmt.Println(string(input))
+		changed = false
+
+		for i := 0; i < len(a)-1; i++ {
+			ch := a[i]
+			if ch == 0 {
+				break
+			}
+			if ch >= 'A' && ch <= 'Z' {
+				if a[i+1] == ch+32 {
+					a = append(a[:i], a[i+2:]...)
+					changed = true
+					break
+				}
+			} else if ch >= 'a' && ch <= 'z' {
+				if a[i+1] == ch-32 {
+					a = append(a[:i], a[i+2:]...)
+					changed = true
+					break
+				}
+			}
+		}
+		if !changed {
+			break
+		}
+	}
+
+	return len(a)
+}
+
+func remove(in []byte, ch1, ch2 byte) []byte {
+	var out []byte = make([]byte, len(in))
+	copy(out, in)
+	var changed bool
+	for {
+		changed = false
+		for i := 0; i < len(out); i++ {
+			if out[i] == ch1 || out[i] == ch2 {
+				out = append(out[:i], out[i+1:]...)
+				changed = true
+				break
+			}
+		}
+		if !changed {
+			break
+		}
+	}
+
+	// for i, j := 0, 0; i < len(in); i++ {
+	// 	if !(in[i] == ch1 || in[i] == ch2) {
+	// 		out[j] = in[i]
+	// 		j += 1
+	// 	}
+	// }
+	return out
+}
+
+func partOne() int {
+	defer duration(time.Now(), "part 1")
+	fmt.Println("input len", len(input))
+
+	var a []byte = make([]byte, len(input))
+	copy(a, input)
+	return react(a)
+}
+
+func partTwo() int {
+	var shortest int = math.MaxInt64
+
+	fmt.Println("input len", len(input))
+	for ch := 'A'; ch <= 'Z'; ch++ {
+		stripped := remove(input, byte(ch), byte(ch+32))
+		length := react(stripped)
+		// fmt.Println(string(ch), length, string(stripped))
+		if length < shortest {
+			shortest = length
+		}
+	}
+
+	return shortest
+}
+
+func main() {
+	defer duration(time.Now(), "main")
+
+	fmt.Println(partOne()) // 10978
+	fmt.Println(partTwo()) // 4840
+}
+
+/*
+$ go run main.go
+*/

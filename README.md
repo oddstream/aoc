@@ -2,7 +2,7 @@
 
 Chapeau to Eric Wastl (http://was.tl/) (also for [vanilla js](http://vanilla-js.com/))
 
-The aim is to - eventually - do all puzzles from all years. Some of the code is quick-and-dirty and I'm sometimes surprised to get the right answer. Occasionally I ask GPT-4 for help with a function or algorithm; I've given up on Google's Bard, which has yet to yield any correct answers.
+The aim is to - eventually - do all puzzles from all years. Some of the code is quick-and-dirty and I'm sometimes surprised to get the right answer. Occasionally I ask GPT-4 for help with a low-level function or algorithm in case I've missed something simple; I've given up on Google's Bard, which has yet to yield any correct answers. Occasionally, using when a brute force solution is taking too long, I have a look at the solutions mega thread on reddit to get ideas. If I'm still stuck, even after taking a long walk, I change the font or my keyboard.
 
 ## Coding style
 
@@ -10,9 +10,11 @@ The first line of each solution should have a comment linking to the problem des
 
 Solutions should have separate partOne() and partTwo() functions/procedures - no command line flags switching.
 
-Favour readability over being clever, for example in Go, use `i += 1` rather than `i++`. Only simple regular expressions.
+Favour readability over being clever, for example in Go, use `i += 1` rather than `i++`. Code golfing is an ingenious artform, but not for me.
 
 Discourage screen clutter, for example in Go use a `switch` rather than a nested cascade of `if else if else`.
+
+Keep all the code self-contained, i.e. no unnecessary helper functions or libraries.
 
 Use one logging/trace system, for example in Go use `log.Println`, in Lua use a simple `log` library.
 
@@ -21,10 +23,7 @@ Use one logging/trace system, for example in Go use `log.Println`, in Lua use a 
 1. Remove all irrelevant characters from input before processing it. (2023 day 1 part 1). Ignore all the fluff and just get the values (2023 day 5)
 2. Use maps (2023 day 3) with numeric keys (Lua), especially when key is multi-part.
 3. Brute force can be done in reverse (2023 day 5)
-
-## Go helper library
-
-A Lodash-style Go library based on Go 1.18+ Generics (map, filter, contains, find...) https://github.com/samber/lo
+4. Avoid regular expressions, especially in Go. Like someone said: "if you solve a problem with regular expressions, you now have two problems". `fmt.Sscanf()` can go a long way.
 
 ## Observations on language
 
@@ -61,27 +60,3 @@ print(bitoper(6,3,AND))  --> 2
 - [Clojure](https://github.com/tschady/advent-of-code/tree/main)
 - [F#](https://github.com/CameronAavik/AdventOfCode)
 - [AWK](https://github.com/phillbush/aoc)
-
-## TODO
-```go
-package main
-
-import (
-    "fmt"
-    "regexp"
-)
-
-var myExp = regexp.MustCompile(`(?P<first>\d+)\.(\d+).(?P<second>\d+)`)
-
-func main() {
-    match := myExp.FindStringSubmatch("1234.5678.9")
-    result := make(map[string]string)
-    for i, name := range myExp.SubexpNames() {
-        if i != 0 && name != "" {
-            result[name] = match[i]
-        }
-    }
-    fmt.Printf("by name: %s %s\n", result["first"], result["second"])
-}
-```
-
