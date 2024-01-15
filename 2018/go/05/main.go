@@ -26,19 +26,21 @@ func removeCharacters(input string, characters string) string {
 	return strings.Map(filter, input)
 }
 
-func removeAdjacentPairs(s string) string {
-	if len(s) < 2 {
-		return s
+func removeAdjacentPairs(in string) string {
+	if len(in) < 2 {
+		return in
 	}
-	var stack []byte
-	for i := 0; i < len(s); i++ {
-		if len(stack) > 0 && (stack[len(stack)-1] == s[i]+32 || stack[len(stack)-1] == s[i]-32) {
-			stack = stack[:len(stack)-1]
+	// var out []byte = make([]byte, 0, len(in))	slower!
+	var out []byte
+	for i := 0; i < len(in); i++ {
+		l1 := len(out) - 1
+		if len(out) > 0 && (out[l1] == in[i]+32 || out[l1] == in[i]-32) {
+			out = out[:l1]
 		} else {
-			stack = append(stack, s[i])
+			out = append(out, in[i])
 		}
 	}
-	return string(stack)
+	return string(out)
 }
 
 func partOne() int {
