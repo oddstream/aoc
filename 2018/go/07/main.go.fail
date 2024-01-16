@@ -1,0 +1,144 @@
+// https://adventofcode.com/2018/day/7 The Sum of Its Parts
+package main
+
+import (
+	"bufio"
+	_ "embed"
+	"fmt"
+	"sort"
+	"strings"
+	"time"
+)
+
+//go:embed input.txt
+var input string
+
+type Step struct {
+	a, b                string
+	available, finished bool
+}
+
+func duration(invocation time.Time, name string) {
+	fmt.Println(name, time.Since(invocation))
+}
+
+// appears in column 1 but not column 2
+func start(steps []Step) string {
+	var bmap map[string]bool = make(map[string]bool)
+	for _, s := range steps {
+		bmap[s.b] = true
+	}
+	for _, s := range steps {
+		if !bmap[s.a] {
+			fmt.Println("possible start", s.a)
+		}
+	}
+	for _, s := range steps {
+		if !bmap[s.a] {
+			return s.a
+		}
+	}
+	return ""
+}
+
+// appears in column 2 but not column 1
+func end(steps []Step) string {
+	var amap map[string]bool = make(map[string]bool)
+	for _, s := range steps {
+		amap[s.a] = true
+	}
+	for _, s := range steps {
+		if !amap[s.b] {
+			fmt.Println("possible end", s.b)
+		}
+	}
+	for _, s := range steps {
+		if !amap[s.b] {
+			return s.b
+		}
+	}
+	return ""
+}
+
+func finish(steps []Step, a string) {
+	for i := range steps {
+		if steps[i].a == a {
+			steps[i].finished = true
+		}
+	}
+	// find all finished steps
+	for i := range steps {
+		if steps[i].finished {
+			// a is finshed, so find all b
+			for j := range steps {
+				if steps[i].b == steps[j].a {
+					steps[j].available = true
+				}
+			}
+		}
+	}
+}
+
+func available(steps []Step) []string {
+	var result []string
+	for _, s := range steps {
+		if s.available && !s.finished {
+			result = append(result, s.a)
+		}
+	}
+	sort.Slice(result, func(a, b int) bool { return result[a] < result[b] })
+	return result
+}
+
+func partOne() string {
+	defer duration(time.Now(), "part 1")
+	var steps []Step
+	// var stepMap map[string]struct{} = make(map[string]struct{})
+	scanner := bufio.NewScanner(strings.NewReader(input))
+	for scanner.Scan() {
+		var s Step
+		if n, err := fmt.Sscanf(scanner.Text(), "Step %s must be finished before step %s can begin.", &s.a, &s.b); n != 2 {
+			fmt.Println(err)
+			break
+		}
+		steps = append(steps, s)
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Println(err)
+	}
+	// sort.Slice(steps, func(a, b int) bool { return steps[a].a < steps[b].a })
+	fmt.Println(steps)
+
+	var order string
+	var curr string = "R"      //start(steps)
+	fmt.Println("start", curr) // test=C, input=Q,B,R
+	var end string = end(steps)
+	fmt.Println("end", end) // test=E, input=O
+	for {
+		order = order + curr
+		if curr == end {
+			break
+		}
+		finish(steps, curr)
+		// fmt.Println(steps)
+		av := available(steps)
+		if len(av) == 0 {
+			order = order + end
+			break
+		}
+		curr = av[0]
+	}
+	return order
+}
+
+func main() {
+	defer duration(time.Now(), "main")
+
+	// BGKDMJCNEQRSTUZWHYLPAFIVXO
+	fmt.Println(partOne()) // not QFISTALPVXO, BDAFGIKMJCLNEPSTUVXYZHWO, RAFHILPVXO
+	// 941
+}
+
+/*
+$ go run main.go
+*/
