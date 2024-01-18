@@ -24,6 +24,7 @@ Use one logging/trace system, for example in Go use `log.Println`, in Lua use a 
 2. Use maps (2023 day 3) with numeric keys (Lua), especially when key is multi-part.
 3. Brute force can be done in reverse (2023 day 5)
 4. Avoid regular expressions, especially in Go. Like someone said: "if you solve a problem with regular expressions, you now have two problems". `fmt.Sscanf()` can go a long way.
+5. Seeing the word 'infinite' in the description means you should be using maps, not a fixed size grid.
 
 ## Observations on language
 
