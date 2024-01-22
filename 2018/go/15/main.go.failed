@@ -1,0 +1,355 @@
+package main
+
+import (
+	"bufio"
+	_ "embed"
+	"fmt"
+	"sort"
+	"strings"
+	"time"
+)
+
+//go:embed test1.txt
+var input string // test1 is 7x7, input is 32x32
+
+type Square struct {
+	// y, x can be implied from area
+	wall bool
+	unit *Unit
+	// open space if wall == false && unit == nil
+}
+
+type Area [][]string
+
+type Point struct {
+	y, x int
+}
+
+func (p Point) add(q Point) Point {
+	return Point{y: p.y + q.y, x: p.x + q.x}
+}
+
+// Unit describes an Elf or a Goblin
+type Unit struct {
+	Point
+	species                string // "E"lf or "G"oblin
+	attackPower, hitPoints int    // starts with 3, 200
+}
+
+// Units is a collection of *Unit; use pointers because
+// they are mutable
+type Units map[Point]*Unit
+
+var toutesDirections []Point = []Point{
+	{y: -1, x: 0}, //n
+	{y: 0, x: 1},  //e
+	{y: 1, x: 0},  //s
+	{y: 0, x: -1}, //w
+}
+
+func duration(invocation time.Time, name string) {
+	fmt.Println(name, time.Since(invocation))
+}
+
+// load the area and units from embedded input
+func loadInput() (Area, Units) {
+	var area Area
+	scanner := bufio.NewScanner(strings.NewReader(input))
+	for scanner.Scan() {
+		area = append(area, strings.Split(scanner.Text(), ""))
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Println(err)
+
+	}
+
+	var units Units = make(Units)
+	for y := 0; y < len(area); y++ {
+		for x := 0; x < len(area[0]); x++ {
+			ch := area[y][x]
+			pt := Point{y: y, x: x}
+			if ch == "E" || ch == "G" {
+				units[pt] = &Unit{Point: pt, species: ch, attackPower: 3, hitPoints: 200}
+				area[y][x] = "."
+			}
+		}
+	}
+	return area, units
+}
+
+// square in area is unoccupied if it is "." and has no units on it
+func unoccupied(area Area, units Units, p Point) bool {
+	if area[p.y][p.x] == "." {
+		if unit, ok := units[p]; !ok {
+			return true
+		} else {
+			return unit.hitPoints > 0
+		}
+	}
+	return false
+}
+
+// utility function for sort.Slice()
+func readingOrder(a, b Point) bool {
+	if a.y == b.y {
+		return a.x < b.x
+	}
+	return a.y < b.y
+}
+
+// return a list of enemy units adjacent to this unit
+// sorted into attack order
+func findUnitsInRange(units Units, unit *Unit) []*Unit {
+	var inrange []*Unit
+	if unit.hitPoints > 0 {
+		for _, dir := range toutesDirections {
+			var q Point = unit.Point.add(dir)
+			if enemy, ok := units[q]; ok {
+				if enemy.species != unit.species {
+					inrange = append(inrange, enemy)
+				}
+			}
+		}
+		sort.Slice(inrange, func(a, b int) bool {
+			if inrange[a].hitPoints == inrange[b].hitPoints {
+				return readingOrder(inrange[a].Point, inrange[b].Point)
+			} else {
+				return inrange[a].hitPoints < inrange[b].hitPoints
+			}
+		})
+	}
+	return inrange
+}
+
+func attack(unit *Unit, enemy *Unit) {
+	enemy.hitPoints -= unit.attackPower
+}
+
+func findTargets(area Area, units Units, unit *Unit) []Point {
+	var targets = []Point{}
+	for pt, enemy := range units {
+		if enemy.species == unit.species || enemy.hitPoints <= 0 {
+			continue
+		}
+		for _, dir := range toutesDirections {
+			var q Point = pt.add(dir)
+			if unoccupied(area, units, q) {
+				targets = append(targets, q)
+			}
+		}
+	}
+	sort.Slice(targets, func(a, b int) bool {
+		return readingOrder(targets[a], targets[b])
+	})
+	return targets
+}
+
+func bfs(area Area, units Units, start, end Point) (int, Point) {
+	type BfsPoint struct {
+		Point
+		parent *BfsPoint
+	}
+
+	var q []BfsPoint = []BfsPoint{{Point: start}}
+	var seen map[Point]struct{} = make(map[Point]struct{})
+	for len(q) > 0 {
+		var p BfsPoint
+		p, q = q[0], q[1:]
+		if p.x == end.x && p.y == end.y {
+			var steps int
+			var firstStep Point
+			for par := &p; par.parent != nil; par = par.parent {
+				steps += 1
+				firstStep = Point{y: par.y, x: par.x}
+			}
+			return steps, firstStep
+		}
+		for _, dir := range toutesDirections {
+			var np Point = p.Point.add(dir)
+			if _, ok := seen[np]; !ok {
+				if unoccupied(area, units, np) {
+					q = append(q, BfsPoint{Point: np, parent: &p})
+					seen[np] = struct{}{}
+				}
+			}
+		}
+	}
+	return -1, Point{0, 0}
+}
+
+// which targets are reachable?
+// which target can be reached in the fewest steps?
+// If multiple squares are in range
+// and tied for being reachable in the fewest steps,
+// the square which is first in reading order is chosen
+func selectTarget(area Area, units Units, unit *Unit, targets []Point) (bool, Point) {
+	type Target struct {
+		steps     int
+		firstStep Point
+	}
+	var t []Target
+	for _, pt := range targets {
+		steps, firstStep := bfs(area, units,
+			Point{y: unit.y, x: unit.x},
+			pt,
+		)
+		if steps != 0 {
+			t = append(t, Target{steps, firstStep})
+		}
+	}
+	if len(t) == 0 {
+		return false, Point{0, 0}
+	}
+	sort.Slice(t, func(a, b int) bool {
+		if t[a].steps == t[b].steps {
+			return readingOrder(t[a].firstStep, t[b].firstStep)
+		}
+		return t[a].steps < t[b].steps
+	})
+	return true, t[0].firstStep
+}
+
+func move(area Area, units Units, unit *Unit, targets []Point) bool {
+	if ok, nextPoint := selectTarget(area, units, unit, targets); ok {
+		if _, ok := units[nextPoint]; ok {
+			panic("unit overlap")
+		}
+		delete(units, unit.Point)
+		unit.Point = nextPoint
+		units[unit.Point] = unit
+		return true
+	}
+	return false
+}
+
+func round(area Area, units Units) {
+	// look for units in reading order
+	// that are not dead
+	// collect a list of units to move, in reading order
+	// so we avoid dead units and moving a unit twice
+	var unitsToProcess []*Unit
+	for x := 0; x < len(area[0]); x++ {
+		for y := 0; y < len(area); y++ {
+			// get a list of targets (next to unit of other species)
+			pt := Point{y: y, x: x}
+			if unit, ok := units[pt]; ok {
+				if unit.hitPoints <= 0 {
+					continue
+				}
+				unitsToProcess = append(unitsToProcess, unit)
+			}
+		}
+	}
+
+	for _, unit := range unitsToProcess {
+		inrange := findUnitsInRange(units, unit)
+		if len(inrange) > 0 {
+			attack(unit, inrange[0])
+		} else {
+			targets := findTargets(area, units, unit)
+			if len(targets) > 0 {
+				// if the unit cannot move to a target, the turn ends
+				if move(area, units, unit, targets) {
+					inrange = findUnitsInRange(units, unit)
+					if len(inrange) > 0 {
+						attack(unit, inrange[0])
+					}
+				}
+			}
+		}
+		// fmt.Println(unit.species, unit.Point, len(inrange))
+	}
+
+	for pt, unit := range units {
+		if unit.hitPoints <= 0 {
+			delete(units, pt)
+		}
+	}
+	// displayUnits(units)
+}
+
+func numSpecies(units Units, species string) int {
+	var count int
+	for _, unit := range units {
+		if unit.hitPoints > 0 && unit.species == species {
+			count += 1
+		}
+	}
+	return count
+}
+
+func sumHitPoints(units Units) int {
+	var sum int
+	for _, unit := range units {
+		if unit.hitPoints > 0 {
+			sum += 1
+		}
+	}
+	return sum
+}
+
+func displayArea(title string, area Area, units Units) {
+	fmt.Println(title)
+	for y := 0; y < len(area); y++ {
+		var displayUnits []*Unit
+		for x := 0; x < len(area[0]); x++ {
+			pt := Point{y: y, x: x}
+			if unit, ok := units[pt]; ok {
+				fmt.Print(unit.species)
+				displayUnits = append(displayUnits, unit)
+			} else {
+				fmt.Print(area[y][x])
+			}
+		}
+		if len(displayUnits) > 0 {
+			fmt.Print("\t")
+			for _, u := range displayUnits {
+				fmt.Printf("%s(%d) ", u.species, u.hitPoints)
+			}
+		}
+		fmt.Println()
+	}
+}
+
+func partOne() int {
+	defer duration(time.Now(), "part 1")
+	area, units := loadInput()
+	// fmt.Println(area)
+	displayArea("Initially:", area, units)
+	for i := 0; i < 25; i++ {
+		round(area, units)
+		if numSpecies(units, "E") == 0 {
+			fmt.Println("Elves all dead at round", i)
+			break
+		}
+	}
+	displayArea("Finally:", area, units)
+
+	fmt.Println("hit points", sumHitPoints(units))
+	// displayUnits(units)
+	// round(area, units)
+	// fmt.Println(bfs(area, units,
+	// 	Point{y: 1, x: 1},
+	// 	Point{y: 5, x: 1}))
+	// fmt.Println(bfs(area, units,
+	// 	Point{y: 1, x: 1},
+	// 	Point{y: 5, x: 5}))
+	// fmt.Println(bfs(area, units,
+	// 	Point{y: 1, x: 1},
+	// 	Point{y: 3, x: 3}))
+	// fmt.Println(bfs(area, units,
+	// 	Point{y: 1, x: 1},
+	// 	Point{y: 3, x: 5}))
+	return -1
+}
+
+func main() {
+	defer duration(time.Now(), "main")
+
+	fmt.Println("part 1", partOne())
+	// fmt.Println("part 2", partTwo())
+}
+
+/*
+$ go run main.go
+*/
