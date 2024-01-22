@@ -144,22 +144,22 @@ eqir 11 1 1 111 1
 */
 
 var num2func map[int]OpFunc = map[int]OpFunc{
-	14: ops["eqrr"],
-	13: ops["eqri"],
-	1:  ops["eqir"],
-	9:  ops["gtri"],
-	7:  ops["gtrr"],
-	3:  ops["gtir"],
-	2:  ops["setr"],
-	8:  ops["bani"],
-	11: ops["banr"],
-	10: ops["bori"],
-	0:  ops["seti"],
-	4:  ops["addi"],
-	15: ops["addr"],
-	12: ops["borr"],
-	5:  ops["muli"],
-	6:  ops["mulr"],
+	// 14: ops["eqrr"],
+	// 13: ops["eqri"],
+	// 1:  ops["eqir"],
+	// 9:  ops["gtri"],
+	// 7:  ops["gtrr"],
+	// 3:  ops["gtir"],
+	// 2:  ops["setr"],
+	// 8:  ops["bani"],
+	// 11: ops["banr"],
+	// 10: ops["bori"],
+	// 0:  ops["seti"],
+	// 4:  ops["addi"],
+	// 15: ops["addr"],
+	// 12: ops["borr"],
+	// 5:  ops["muli"],
+	// 6:  ops["mulr"],
 }
 
 func display(possible map[string]*[16]bool) {
@@ -243,6 +243,48 @@ func partOne(input string, expected int) int {
 	// map of opcode number (via opcode string) to op func
 	// display(possible)
 
+	var occlst [][]string
+	for i := 0; i < 16; i++ {
+		occlst = append(occlst, []string{})
+		for k := range ops {
+			if possible[k][i] {
+				occlst[i] = append(occlst[i], k)
+			}
+		}
+	}
+	// display occlst
+	// for i := 0; i < 16; i++ {
+	// 	fmt.Print(i)
+	// 	for _, v := range occlst[i] {
+	// 		fmt.Print(" ", v)
+	// 	}
+	// 	fmt.Println()
+	// }
+
+	// var num2name map[int]string = map[int]string{}
+
+	for {
+		for i, lst1 := range occlst {
+			if len(lst1) == 1 {
+				opname := lst1[0]
+				// num2name[i] = opname
+				num2func[i] = ops[opname]
+				for j, lst2 := range occlst {
+					for k, name := range lst2 {
+						if name == opname {
+							occlst[j] = append(lst2[:k], lst2[k+1:]...) // replace list
+						}
+					}
+				}
+				goto next // restart outer loop to find another entry with len == 1
+			}
+		}
+		break // we didn't find any entries with len == 1, so we're done
+		// could also have outer loop run until len(ops) == 16
+	next:
+	}
+	// fmt.Println(num2name)
+
 	if expected != -1 {
 		if result != expected {
 			fmt.Println("ERROR: got", result, "expected", expected)
@@ -289,4 +331,11 @@ func main() {
 
 /*
 $ go run main.go
+16 ops
+806 samples
+RIGHT: 646
+part 1 3.982451ms
+RIGHT: 681
+part 1 806.324µs
+main 4.809792ms
 */
