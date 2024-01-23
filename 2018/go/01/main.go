@@ -40,7 +40,7 @@ func partOne() int {
 }
 
 func partTwo() int {
-	defer duration(time.Now(), "part 1")
+	defer duration(time.Now(), "part 2")
 	var freq int
 	var seen map[int]int = map[int]int{freq: 1}
 	for {
@@ -69,7 +69,7 @@ func main() {
 $ go run main.go
 part 1 43.002µs
 435
-part 1 19.691773ms
+part 2 19.691773ms
 245
 main 19.782349ms
 */

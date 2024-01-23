@@ -10,10 +10,10 @@ import (
 )
 
 //go:embed input1.txt
-var input1 string
+var input1 string	// first part of input.txt
 
 //go:embed input2.txt
-var input2 string
+var input2 string	// second part of input.txt
 
 type Registers [4]int // four registers, 0 .. 3
 
@@ -21,7 +21,7 @@ type Instruction struct {
 	N, A, B, C int // N is opcode (0..15), A, B are inputs, C is output
 }
 
-type OpFunc func(int, int, Registers) int // output always goes to C
+type OpFunc func(int, int, Registers) int // output always goes to Registers[C]
 
 type Sample struct {
 	before Registers
@@ -89,39 +89,44 @@ func duration(invocation time.Time, name string) {
 }
 
 /*
+
+Output from displayPossible():
+
                111111
 op   0123456789012345
-addr       1     1  1
-mulr       1
-bani 1    11 1 11
-gtri 1  11 1111 1
-addi     1 1
-borr       1     1
-eqrr 11 1 1  11 1 11
-banr 1   111   11
-bori     1 1   1 1
-gtir 1 11 11 1  1
-eqri 11 1 1 11  1 1
-muli      11
-setr   1 1 1   1 1
-seti 1     1        1
-gtrr 1  1 1111  11
-eqir 11 1 1 111 1
+muli .....##.........
+seti #.....#........#
+eqri ##.#.#.##..#.#..
+addi ....#.#.........
+banr #...###...##....
+gtrr #..#.####..##...
+eqir ##.#.#.###.#....
+addr ......#.....#..#
+gtri #..##.####.#....
+eqrr ##.#.#..##.#.##.
+mulr ......#.........
+borr ......#.....#...
+bori ....#.#...#.#...
+setr ..#.#.#...#.#...
+gtir #.##.##.#..#....
+bani #....##.#.##....
 
-00 bani gtri banr gtir eqri seti gtrr eqir
-01 eqri eqir
-02 gtir setr
-03 gtri gtir eqri gtrr eqir
-04 gtri addi banr bori setr
-05 bani banr gtir eqri muli gtrr eqir
-06 addr mulr bani gtri addi borr banr bori gtir muli setr seti gtrr
-07 gtri eqri gtrr eqir
-08 bani gtri gtir eqri, gtrr eqir
-09 gtri eqir
-10 bani banr bori setr
-11 bani banr gtir eqri gtrr
-12 addr borr bori setr gtrr
-13 eqri
+Output from displayOcclst():
+
+0 seti eqir eqrr banr bani gtrr gtir gtri eqri
+1 eqri eqir eqrr
+2 gtir setr
+3 gtrr gtir gtri eqri eqrr eqir
+4 addi bori setr banr gtri
+5 banr bani gtrr muli gtir eqri eqir eqrr
+6 muli borr gtir gtri addr addi mulr seti bori setr banr bani gtrr
+7 gtrr gtri eqri eqir
+8 bani gtrr gtir gtri eqri eqir eqrr
+9 gtri eqir eqrr
+10 bani banr setr bori
+11 eqir eqrr banr bani gtrr gtir gtri eqri
+12 bori setr gtrr borr addr
+13 eqri eqrr
 14 eqrr
 15 addr seti
 
@@ -162,7 +167,7 @@ var num2func map[int]OpFunc = map[int]OpFunc{
 	// 6:  ops["mulr"],
 }
 
-func display(possible map[string]*[16]bool) {
+func displayPossible(possible map[string]*[16]bool) {
 	fmt.Println("               111111")
 	fmt.Println("op   0123456789012345")
 	for opname := range ops {
@@ -170,10 +175,20 @@ func display(possible map[string]*[16]bool) {
 		fmt.Print(opname, " ")
 		for i := 0; i < len(poss); i++ {
 			if poss[i] {
-				fmt.Print("1")
+				fmt.Print("#")
 			} else {
-				fmt.Print(" ")
+				fmt.Print(".")
 			}
+		}
+		fmt.Println()
+	}
+}
+
+func displayOcclst(occlst [][]string) {
+	for i := 0; i < 16; i++ {
+		fmt.Print(i)
+		for _, v := range occlst[i] {
+			fmt.Print(" ", v)
 		}
 		fmt.Println()
 	}
@@ -210,7 +225,6 @@ func partOne(input string, expected int) int {
 		fmt.Println(err)
 	}
 
-	fmt.Println(len(ops), "ops")         // 16 ops
 	fmt.Println(len(samples), "samples") // 806 samples
 
 	// map the op name to pointer to list of len(ops) bools
@@ -238,10 +252,7 @@ func partOne(input string, expected int) int {
 		}
 	}
 
-	// use output from display(possible)
-	// to create (by hand, Bletchley Park-style)
-	// map of opcode number (via opcode string) to op func
-	// display(possible)
+	// displayPossible(possible)
 
 	var occlst [][]string
 	for i := 0; i < 16; i++ {
@@ -252,20 +263,18 @@ func partOne(input string, expected int) int {
 			}
 		}
 	}
-	// display occlst
-	// for i := 0; i < 16; i++ {
-	// 	fmt.Print(i)
-	// 	for _, v := range occlst[i] {
-	// 		fmt.Print(" ", v)
-	// 	}
-	// 	fmt.Println()
-	// }
+
+	// displayOcclst(occlst)
 
 	// var num2name map[int]string = map[int]string{}
 
 	for {
 		for i, lst1 := range occlst {
 			if len(lst1) == 1 {
+				// that's a bingo
+				// store this in the num -> op name map,
+				// and remove all instances of the op name from the occlst
+				// which should result in one or more occ lists with one entry
 				opname := lst1[0]
 				// num2name[i] = opname
 				num2func[i] = ops[opname]
@@ -276,12 +285,15 @@ func partOne(input string, expected int) int {
 						}
 					}
 				}
-				goto next // restart outer loop to find another entry with len == 1
+				goto nextloop // restart outer loop to find another entry with len == 1
 			}
+		}
+		if len(ops) != 16 {
+			panic("incompete ops map")
 		}
 		break // we didn't find any entries with len == 1, so we're done
 		// could also have outer loop run until len(ops) == 16
-	next:
+	nextloop:
 	}
 	// fmt.Println(num2name)
 
@@ -295,8 +307,9 @@ func partOne(input string, expected int) int {
 	return result
 }
 
+// use the num2func map we built after the part 1 result was calculated
 func partTwo(input string, expected int) int {
-	defer duration(time.Now(), "part 1")
+	defer duration(time.Now(), "part 2")
 
 	var r Registers
 	var i Instruction
@@ -311,7 +324,6 @@ func partTwo(input string, expected int) int {
 	}
 
 	var result int = r[0]
-
 	if expected != -1 {
 		if result != expected {
 			fmt.Println("ERROR: got", result, "expected", expected)
@@ -325,6 +337,9 @@ func partTwo(input string, expected int) int {
 func main() {
 	defer duration(time.Now(), "main")
 
+	if len(ops) != 16 {
+		panic("there should be 16 ops")
+	}
 	partOne(input1, 646)
 	partTwo(input2, 681)
 }
@@ -336,6 +351,6 @@ $ go run main.go
 RIGHT: 646
 part 1 3.982451ms
 RIGHT: 681
-part 1 806.324µs
+part 2 806.324µs
 main 4.809792ms
 */
