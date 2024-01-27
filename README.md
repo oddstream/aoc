@@ -67,7 +67,7 @@ print(bitoper(6,3,AND))  --> 2
 | Year | Day  | Notes                                                        |
 | ---- | ---- | ------------------------------------------------------------ |
 | 2018 | 15   | Works on all the test cases but not the actual input. Have respected all the advice from others regarding sort order. The answer depends on the order of direction looks in the the BFS function, which is a big clue to where I'm going wrong, but I can't decipher it. |
-|      |      |                                                              |
+| 2019 | 7    | Part 2 - instructions unclear - turned out, instruction pointer needed to be saved between invocations of each amplifier, not just the []int instructions/memory. |
 |      |      |                                                              |
 
 ## Comments from u/vipul0092
