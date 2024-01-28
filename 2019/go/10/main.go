@@ -37,14 +37,11 @@ func duration(invocation time.Time, name string) {
 	fmt.Println(name, time.Since(invocation))
 }
 
-// slope between two points
-//
-// Deprecated: because slope(Point{0, 0}, Point{0, 4}) == +Inf
-// func slope(p1, p2 Point) float64 {
-// 	return (float64(p2.y) - float64(p1.y)) / (float64(p2.x) - float64(p1.x))
-// }
+type Number interface {
+	int | float64
+}
 
-func abs(n int) int {
+func abs[T Number](n T) T {
 	if n < 0 {
 		return -n
 	}
@@ -53,6 +50,13 @@ func abs(n int) int {
 
 // func manhatten(p, q Point) int {
 // 	return abs(q.x-p.x) + abs(q.y-p.y)
+// }
+
+// slope between two points
+//
+// Deprecated: because slope(Point{0, 0}, Point{0, 4}) == +Inf
+// func slope(p1, p2 Point) float64 {
+// 	return (float64(p2.y) - float64(p1.y)) / (float64(p2.x) - float64(p1.x))
 // }
 
 // returns true if three points are in line
@@ -68,14 +72,12 @@ func abs(n int) int {
 func between(p1, p2, p3 Point) bool {
 	// https://stackoverflow.com/questions/11907947/how-to-check-if-a-point-lies-on-a-line-between-2-other-points
 
-	// first check whether the point lies on the line p1-p2
+	// first check whether p3 lies on the line p1-p2
 	// for that you simply need a "cross-product" of vectors p1 -> p3 and p1 -> p2
 	var dxc = p3.x - p1.x
 	var dyc = p3.y - p1.y
-
 	var dxl = p2.x - p1.x
 	var dyl = p2.y - p1.y
-
 	var cross = dxc*dyl - dyc*dxl
 	// p3 lies on the p1-p2 line if and only if cross == 0
 	if cross != 0 {
@@ -102,9 +104,8 @@ func part1(in string, expected int) {
 
 	var asteroids map[Point]struct{} = make(map[Point]struct{})
 	scanner := bufio.NewScanner(strings.NewReader(in))
-	var width, height, y int
+	var y int
 	for scanner.Scan() {
-		width = len(scanner.Text())
 		for x, ch := range strings.Split(scanner.Text(), "") {
 			if ch == "#" {
 				asteroids[Point{y: y, x: x}] = struct{}{}
@@ -112,8 +113,6 @@ func part1(in string, expected int) {
 		}
 		y += 1
 	}
-	height = y
-	fmt.Println(len(asteroids), "asteroids, width height is", width, height)
 
 	obstructed := func(pt1, pt2 Point) bool {
 		for pt3 := range asteroids {
@@ -177,9 +176,8 @@ func part2(in string, laser Point, expected int) {
 
 	var asteroids map[Point]struct{} = make(map[Point]struct{})
 	scanner := bufio.NewScanner(strings.NewReader(in))
-	var width, height, y int
+	var y int
 	for scanner.Scan() {
-		width = len(scanner.Text())
 		for x, ch := range strings.Split(scanner.Text(), "") {
 			if ch == "#" {
 				asteroids[Point{y: y, x: x}] = struct{}{}
@@ -187,8 +185,6 @@ func part2(in string, laser Point, expected int) {
 		}
 		y += 1
 	}
-	height = y
-	fmt.Println(len(asteroids), "asteroids, width height is", width, height)
 
 	// make a list of all asteroids visible from laser
 	// sort list by angle (straight up is zero) angle = arctan2(y2-y1/x2-x1)
@@ -251,6 +247,7 @@ func main() {
 	part1(input, 334) // 23,20 334
 
 	// fmt.Println(angle(Point{0, 0}, Point{0, -4})) // n
+	// fmt.Println(angle(Point{0, 0}, Point{4, -4})) // ne
 	// fmt.Println(angle(Point{0, 0}, Point{4, 0}))  // e
 	// fmt.Println(angle(Point{0, 0}, Point{0, 4}))  // s
 	// fmt.Println(angle(Point{0, 0}, Point{-4, 0})) // w
