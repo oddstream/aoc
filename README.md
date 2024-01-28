@@ -30,6 +30,8 @@ Use one logging/trace system, for example in Go use `log.Println`, in Lua use a 
 
 - Go's regexp package seems a little weird and clunky, eg specifying named capture groups seems obliquely-supported, unless I'm missing something. Lua offers a simpler, non-POSIX, system. (*Unlike several other scripting languages, **Lua does not use POSIX regular expressions (regexp) for pattern matching**. The main reason for this is size: A typical implementation of POSIX  regexp takes more than 4,000 lines of code. This is bigger than all Lua  standard libraries together*).
 
+- In Go, it's often not clear (to me) if I'm dealing with: (1) the object, (2) a copy of the object, (3) a pointer to the object.
+
 - Lua 5.1's lack of bitwise operators hurts a bit, unless I use 5.4 or [the library that comes with LuaJIT](https://bitop.luajit.org/), or something like:
 
 ```Lua
@@ -68,7 +70,7 @@ print(bitoper(6,3,AND))  --> 2
 | ---- | ---- | ------------------------------------------------------------ |
 | 2018 | 15   | Works on all the test cases but not the actual input. Have respected all the advice from others regarding sort order. The answer depends on the order of direction looks in the the BFS function, which is a big clue to where I'm going wrong, but I can't decipher it. |
 | 2019 | 7    | Part 2 - instructions unclear - turned out, instruction pointer needed to be saved between invocations of each amplifier, not just the []int instructions/memory. |
-|      |      |                                                              |
+| 2019 | 10   | Proud of part 1 solution; did it all in integers without calculating any angles or creating an actual grid. Solution uses a map to hold the asteroid positions, and calculates if any asteroids lie between two other asteroids using an algorithm copied from stack overflow. It's a bit O(n3), and takes nearly a second on my machine, so no prizes for efficiency.  Part 2 does calculate angles, but only when sorting a slice of asteroids visible from the laser point. |
 
 ## Comments from u/vipul0092
 
