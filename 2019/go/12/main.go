@@ -5,6 +5,7 @@ import (
 	"bufio"
 	_ "embed"
 	"fmt"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -302,6 +303,14 @@ func main() {
 	// part2(test1, 2772)
 	// part2(test2, 4686774924)
 	part2(input, 281691380235984)
+
+	{
+		var memStats runtime.MemStats
+		runtime.ReadMemStats(&memStats)
+		fmt.Printf("Total allocated memory (in bytes): %d\n", memStats.Alloc)
+		fmt.Printf("Heap memory (in bytes): %d\n", memStats.HeapAlloc)
+		fmt.Printf("Number of garbage collections: %d\n", memStats.NumGC)
+	}
 }
 
 /*
