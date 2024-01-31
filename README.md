@@ -55,14 +55,17 @@ print(bitoper(6,3,AND))  --> 2
 - The most popular choice of language for AoC seems to be [Python](https://www.python.org/). However, I don't know Python and don't really want to. The nearest I'd be willing to go in that direction would be [Nim](https://nim-lang.org/). Other well-suited languages include [Perl](https://www.perl.org/), [Ruby](https://www.ruby-lang.org/en/), Dart, Tcl, ...
 - AoC likes a language that is compact without being unreadable (so, not Javascript, SED, and certainly no code golf), not long winded (so, not Fortran, Java or C and it's modern ilk), that has good out-of-the-box support for string manipulation, and can occasionally do MD5 hashes and bit-twiddling. It doesn't have to be fast. This [this blog entry](https://www.benkraft.org/2017/12/26/advent-of-code/) for a discussion of several languages (TLDR: he didn't like Perl).
 
-## Notable repos
+## Notable repos/commentaries
 - [Go](https://github.com/alexchao26/advent-of-code-go)
+- [Go 2023, 2022, 2021, 2020, 2019](https://github.com/lynerist?tab=repositories)
+- [Go commentary 2019](https://dhconnelly.com/advent-of-code-2019-commentary.html)
 - [Nim](https://github.com/narimiran/advent_of_code_2015)
 - [Racket](https://github.com/goderich/aoc2020/blob/master/day07.rkt)
 - [Python](https://sharick.xyz/projects/advent-of-code)
 - [Clojure](https://github.com/tschady/advent-of-code/tree/main)
 - [F#](https://github.com/CameronAavik/AdventOfCode)
 - [AWK](https://github.com/phillbush/aoc)
+- [Lua 2015, 2019, 2023](https://github.com/DeybisMelendez/AdventOfCode/tree/master)
 
 ## Notable puzzles
 
@@ -71,6 +74,7 @@ print(bitoper(6,3,AND))  --> 2
 | 2018 | 15   | Works on all the test cases but not the actual input. Have respected all the advice from others regarding sort order. The answer depends on the order of direction looks in the the BFS function, which is a big clue to where I'm going wrong, but I can't decipher it. |
 | 2019 | 7    | Part 2 - instructions unclear - turned out, instruction pointer needed to be saved between invocations of each amplifier, not just the []int instructions/memory. |
 | 2019 | 10   | Proud of part 1 solution; did it all in integers without calculating any angles or creating an actual grid. Solution uses a map to hold the asteroid positions, and calculates if any asteroids lie between two other asteroids using an algorithm copied from stack overflow. It's a bit O(n3) as it does three nested loops over the asteroid map, and takes nearly a second on my machine, so no prizes for efficiency.  Part 2 does calculate angles, but only when sorting a slice of asteroids visible from the laser point. |
+| 2019 | 14   | Could see the data structures and general approach as soon as I saw the input, but there was something in the middle that just wouldn't gel. Eventually borrowed heavily from a couple of other solutions. |
 
 ## Comments from u/vipul0092
 
