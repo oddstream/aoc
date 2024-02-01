@@ -59,6 +59,7 @@ print(bitoper(6,3,AND))  --> 2
 - [Go](https://github.com/alexchao26/advent-of-code-go)
 - [Go 2023, 2022, 2021, 2020, 2019](https://github.com/lynerist?tab=repositories)
 - [Go commentary 2019](https://dhconnelly.com/advent-of-code-2019-commentary.html)
+- [Go](https://github.com/xorkevin?tab=repositories)
 - [Nim](https://github.com/narimiran/advent_of_code_2015)
 - [Racket](https://github.com/goderich/aoc2020/blob/master/day07.rkt)
 - [Python](https://sharick.xyz/projects/advent-of-code)
