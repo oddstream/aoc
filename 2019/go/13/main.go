@@ -56,7 +56,22 @@ func play1(program []int) int {
 	}
 
 	intcode(program, in, out)
-
+	/*
+		in := make(chan int)
+		go func() {
+			in <- 0
+		}()
+		var xytile []int
+		out := make(chan int)
+		go func() {
+			xytile = append(xytile, <-out)
+			if len(xytile) == 3 {
+				tiles[Point{x: xytile[0], y: xytile[1]}] = xytile[2]
+				xytile = nil
+			}
+		}()
+		intcode2(program, in, out)
+	*/
 	var result int
 	for _, v := range tiles {
 		if v == BLOCK {
