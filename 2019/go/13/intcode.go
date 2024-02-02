@@ -148,3 +148,61 @@ func intcode(program []int, in func() int, out func(int)) {
 		}
 	}
 }
+
+func intcode2(program []int, in <-chan int, out chan<- int) {
+	var pc, relbase int // Intcode interpreter state
+	for {
+		ins := readInstruction(program, pc, relbase)
+		switch ins.opcode {
+		case ADD:
+			program[ins.params[2]] = program[ins.params[0]] + program[ins.params[1]]
+			pc += 4
+		case MUL:
+			program[ins.params[2]] = program[ins.params[0]] * program[ins.params[1]]
+			pc += 4
+		case INPUT:
+			// fmt.Println("INPUT")
+			program[ins.params[0]] = <-in
+			pc += 2
+		case OUTPUT:
+			// fmt.Println("OUTPUT")
+			pc += 2
+			out <- program[ins.params[0]]
+		case JIT:
+			if program[ins.params[0]] != 0 {
+				pc = program[ins.params[1]]
+			} else {
+				pc += 3
+			}
+		case JIF:
+			if program[ins.params[0]] == 0 {
+				pc = program[ins.params[1]]
+			} else {
+				pc += 3
+			}
+		case LT:
+			if program[ins.params[0]] < program[ins.params[1]] {
+				program[ins.params[2]] = 1
+			} else {
+				program[ins.params[2]] = 0
+			}
+			pc += 4
+		case EQ:
+			if program[ins.params[0]] == program[ins.params[1]] {
+				program[ins.params[2]] = 1
+			} else {
+				program[ins.params[2]] = 0
+			}
+			pc += 4
+		case RELBASE:
+			relbase += program[ins.params[0]]
+			pc += 2
+		case HALT:
+			// fmt.Println("EXIT")
+			return
+		default:
+			fmt.Println("run: unknown opcode", ins.opcode)
+			return
+		}
+	}
+}
