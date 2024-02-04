@@ -104,22 +104,31 @@ func part2(in string, expected int) (result int) {
 		}
 	}
 
-	var d int = 1
-	var i int
-	for boff, bus := range busses {
+	/*
+		Iterate over the bus schedule and checks if the departure time is 0
+		(meaning the bus is not running).
+		If the bus is running, find the next departure time that is a multiple of the bus number.
+		Do this by repeatedly adding the departure time to the result
+		until the result is a multiple of the bus number.
+		Once the code finds a departure time that satisfies all the buses in the schedule,
+		it prints the departure time and exits.
+		Does not use the Chinese Remainder Theorem.
+	*/
+
+	var depart int = 1
+	for i, bus := range busses {
 		if bus == 0 {
 			continue
 		}
 		for {
-			i += d
-			if (i+boff)%bus == 0 {
-				d *= bus
+			result += depart
+			if (result+i)%bus == 0 {
+				depart *= bus
 				break
 			}
 		}
 	}
 
-	result = i
 	report(expected, result)
 	return result
 }
