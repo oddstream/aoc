@@ -78,6 +78,7 @@ print(bitoper(6,3,AND))  --> 2
 | 2019 | 10   | Proud of part 1 solution; did it all in integers without calculating any angles or creating an actual grid. Solution uses a map to hold the asteroid positions, and calculates if any asteroids lie between two other asteroids using an algorithm copied from stack overflow. It's a bit O(n3) as it does three nested loops over the asteroid map, and takes nearly a second on my machine, so no prizes for efficiency.  Part 2 does calculate angles, but only when sorting a slice of asteroids visible from the laser point. |
 | 2019 | 14   | Could see the data structures and general approach as soon as I saw the input, but there was something in the middle that just wouldn't gel. Eventually borrowed heavily from a couple of other solutions. |
 | 2020 | 7    | Only half-grokked this one; loaded the input into a map of maps, which was fine, but maybe should have used a map of trees. |
+| 2020 | 16   | Like 2018/6; great puzzle, whittling down occurrence lists.  |
 
 ## Comments from u/vipul0092
 

@@ -35,15 +35,19 @@ func atoi(s string) int {
 	return 0
 }
 
-func intersect(a, b []string) []string {
-	m := make(map[string]bool)
-	for _, item := range a {
-		m[item] = true
+func intersect[T comparable](a, b []T) []T {
+	// create an empty result array, with enough room to hold intersection
+	var result = make([]T, 0, len(a))
+	// create a set from the first array
+	var set map[T]struct{} = make(map[T]struct{})
+	for _, ele := range a {
+		set[ele] = struct{}{}
 	}
-	var result []string
-	for _, item := range b {
-		if _, ok := m[item]; ok {
-			result = append(result, item)
+	// check if each element exists in the set by traversing through the second array
+	for _, ele := range b {
+		if _, ok := set[ele]; ok {
+			// if an element exists in both arrays, add it to the intersection array
+			result = append(result, ele)
 		}
 	}
 	return result
@@ -132,8 +136,6 @@ func part2(in string, expected int) (result int) {
 
 	var validfields map[string]map[int]struct{} = make(map[string]map[int]struct{})
 	fieldrx := regexp.MustCompile("([a-z ]+): ([[:digit:]]+)-([[:digit:]]+) or ([[:digit:]]+)-([[:digit:]]+)")
-	var yourticket []int
-	var nearbytickets [][]int
 	scanner := bufio.NewScanner(strings.NewReader(in))
 	// parse the field value clues
 	for scanner.Scan() {
@@ -156,6 +158,7 @@ func part2(in string, expected int) (result int) {
 		validfields[field] = ranges
 	}
 	// parse your ticket
+	var yourticket []int
 	for scanner.Scan() {
 		if scanner.Text() == "" {
 			break
@@ -169,6 +172,7 @@ func part2(in string, expected int) (result int) {
 		// fmt.Println("yourticket", yourticket)
 	}
 	// parse the nearby tickets
+	var nearbytickets [][]int
 	for scanner.Scan() {
 		if scanner.Text() == "nearby tickets:" {
 			continue
