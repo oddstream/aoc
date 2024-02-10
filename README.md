@@ -55,10 +55,15 @@ print(bitoper(6,3,AND))  --> 2
 - The most popular choice of language for AoC seems to be [Python](https://www.python.org/). However, I don't know Python and don't really want to. The nearest I'd be willing to go in that direction would be [Nim](https://nim-lang.org/). Other well-suited languages include [Perl](https://www.perl.org/), [Ruby](https://www.ruby-lang.org/en/), Dart, Tcl, ...
 - AoC likes a language that is compact without being unreadable (so, not Javascript, SED, and certainly no code golf), not long winded (so, not Fortran, Java or C and it's modern ilk), that has good out-of-the-box support for string manipulation, and can occasionally do MD5 hashes and bit-twiddling. It doesn't have to be fast. This [this blog entry](https://www.benkraft.org/2017/12/26/advent-of-code/) for a discussion of several languages (TLDR: he didn't like Perl).
 
+## Notable blogs
+
+- https://www.ericburden.work/blog/
+- [Go commentary 2019](https://dhconnelly.com/advent-of-code-2019-commentary.html)
+
 ## Notable repos/commentaries
+
 - [Go](https://github.com/alexchao26/advent-of-code-go)
 - [Go 2023, 2022, 2021, 2020, 2019](https://github.com/lynerist?tab=repositories)
-- [Go commentary 2019](https://dhconnelly.com/advent-of-code-2019-commentary.html)
 - [Go](https://github.com/xorkevin?tab=repositories)
 - [Nim](https://github.com/narimiran/advent_of_code_2015)
 - [Racket](https://github.com/goderich/aoc2020/blob/master/day07.rkt)
@@ -80,6 +85,9 @@ print(bitoper(6,3,AND))  --> 2
 | 2020 | 7    | Only half-grokked this one; loaded the input into a map of maps, which was fine, but maybe should have used a map of trees. |
 | 2020 | 16   | Like 2018/6; great puzzle, whittling down occurrence lists.  |
 | 2020 | 18   | For part one, used a simple infix-to-postfix converter (that I first borrowed from Donald Alcock's "Illustrating Pascal" back in 1989) and a postfix evaluator. *Almost* smiled with delight when I found that I only had to change one character in the precedence map to solve part 2. |
+| 2020 | 19   | Part 1 tricky enough. Brain saw part 2, thought for a moment, then said "nope". |
+| 2020 | 20   | Stonking big puzzle. Stumbled upon a cheat way of solving part 1, can't yet wrap my brain around a way to do the first half of part 2 (assemble the tiles) in an efficient way (the second part, find the pattern in the picture, seems straight forward, if I could just get to it). |
+| 2020 | 21   | Trouble grokking the instructions for part 1, still not convinced that the algorithm implied by the instructions is accurate. Part 2 is a clusterfuck - there are two possible solutions for the example input, not one, so I don't see how the ingredient occurrence lists can be reduced. |
 
 ## Comments from u/vipul0092
 
