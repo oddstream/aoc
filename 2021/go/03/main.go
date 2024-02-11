@@ -100,13 +100,11 @@ func part2(in string, expected int) (result int) {
 	var src []string = readInput(in)
 	for x := 0; x < len(src[0]); x++ {
 		var ones, zeros int = mostCommonValues(src, x)
-		var o []string = collectColumn(src, x, '1') // numbers with "1" in column x
-		var z []string = collectColumn(src, x, '0') // numbers with "0" in column x
 		var dst []string
 		if ones > zeros || ones == zeros {
-			dst = append(dst, o...)
+			dst = append(dst, collectColumn(src, x, '1')...)
 		} else {
-			dst = append(dst, z...)
+			dst = append(dst, collectColumn(src, x, '0')...)
 		}
 		if len(dst) == 0 {
 			fmt.Println(x, "dst is empty")
@@ -124,13 +122,11 @@ func part2(in string, expected int) (result int) {
 	src = readInput(in)
 	for x := 0; x < len(src[0]); x++ {
 		var ones, zeros int = mostCommonValues(src, x)
-		var o []string = collectColumn(src, x, '1') // numbers with "1" in column x
-		var z []string = collectColumn(src, x, '0') // numbers with "0" in column x
 		var dst []string
 		if ones > zeros || ones == zeros {
-			dst = append(dst, z...)
+			dst = append(dst, collectColumn(src, x, '0')...)
 		} else {
-			dst = append(dst, o...)
+			dst = append(dst, collectColumn(src, x, '1')...)
 		}
 		if len(dst) == 0 {
 			fmt.Println(x, "dst is empty")
