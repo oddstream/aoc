@@ -2,7 +2,7 @@
 
 Chapeau to Eric Wastl (http://was.tl/) (also for [vanilla js](http://vanilla-js.com/))
 
-The aim is to - eventually - do all puzzles from all years. Some of the code is quick-and-dirty and I'm sometimes surprised to get the right answer. Occasionally I ask GPT-4 for help with a low-level function or algorithm in case I've missed something simple; I've given up on Google's Bard, which has yet to yield any correct answers. Occasionally, using when a brute force solution is taking too long, I have a look at the solutions mega thread on reddit to get ideas. 
+The aim is to - eventually - do all puzzles from all years. Some of the code is quick-and-dirty and I'm sometimes surprised to get the right answer. Occasionally I ask GPT-4 for help with a low-level function or algorithm in case I've missed something simple; I've given up on Google's Bard, which has yet to yield any correct answers. When I get hopelessly stuck or a brute force solution is taking too long, I have a look at the solutions mega thread on reddit to get ideas. 
 
 ## Coding style
 
@@ -23,8 +23,9 @@ Use one logging/trace system, for example in Go use `log.Println`, in Lua use a 
 1. Remove all irrelevant characters from input before processing it. (2023 day 1 part 1). We mindful of any trailing newlines. Ignore all the fluff and just get the values (2023 day 5)
 2. Use maps (2023 day 3) with numeric keys (Lua), especially when key is multi-part.
 3. Brute force can be done in reverse (2023 day 5)
-4. Avoid regular expressions, especially in Go. Like someone said: "if you solve a problem with regular expressions, you now have two problems". `fmt.Sscanf()` can go a long way.
+4. Avoid regular expressions, especially in Go. Like someone said: "if you solve a problem with regular expressions, you now have two problems". `fmt.Sscanf()` , `strings.Split()` and `strings.Fields()` can go a long way.
 5. Seeing the word 'infinite' in the description means you should be using maps, not a fixed size grid.
+6. A lot of stumbles and bad starts happen because I don't fully understand the puzzle descriptions, or think I can see ambiguities. When this happens, it's often helpful to work out a solution by hand in a text editor. At first, I laughed when I saw someone doing AoC in vim, but now I understand that completely.
 
 ## Observations on language
 
@@ -88,6 +89,8 @@ print(bitoper(6,3,AND))  --> 2
 | 2020 | 19   | Part 1 tricky enough. Brain saw part 2, thought for a moment, then said "nope". |
 | 2020 | 20   | Stonking big puzzle. Stumbled upon a cheat way of solving part 1, can't yet wrap my brain around a way to do the first half of part 2 (assemble the tiles) in an efficient way (the second part, find the pattern in the picture, seems straight forward, if I could just get to it). |
 | 2020 | 21   | Trouble grokking the instructions for part 1, still not convinced that the algorithm implied by the instructions is accurate. Part 2 is a clusterfuck - there are two possible solutions for the example input, not one, so I don't see how the ingredient occurrence lists can be reduced. |
+| 2021 | 8    | Part 2 looked tricky, and most of the solutions in the subreddit looked, well, messy. Eventually found an obvious and simple way of doing it. Moral: stare at the input data until your eyes go fuzzy, then stare some more. |
+| 2021 | 9    | Classic AoC puzzle. After becoming dispirited with 2020 19-21, confidence was restored when I found I could type out a BFS from memory and have it work first time. |
 
 ## Comments from u/vipul0092
 
