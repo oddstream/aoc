@@ -181,8 +181,8 @@ func main() {
 	defer duration(time.Now(), "main")
 
 	// part1(test1, 15)
-	// part1(input, 545)
-	part2(test1, 1134)
+	part1(input, 545)
+	// part2(test1, 1134)
 	part2(input, 950600)
 
 	{
@@ -195,4 +195,11 @@ func main() {
 
 /*
 $ go run main.go
+RIGHT ANSWER: 545
+part 1 400.121µs
+RIGHT ANSWER: 950600
+part 2 2.635952ms
+Heap memory (in bytes): 2059256
+Number of garbage collections: 0
+main 3.155417ms
 */
