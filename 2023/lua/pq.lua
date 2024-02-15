@@ -17,7 +17,7 @@ function pq:add(p, v)
 	elseif type(p) == 'number' or type(p) == 'string' then
 		table.insert(self.q, {p=p, v=v})
 	else
-		error('pq:add unknown type of arguement')
+		error('pq:add unknown type of argument')
 	end
 	table.sort(self.q, function(a, b) return a.p < b.p end)
 end

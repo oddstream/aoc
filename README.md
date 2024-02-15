@@ -91,6 +91,7 @@ print(bitoper(6,3,AND))  --> 2
 | 2020 | 21   | Trouble grokking the instructions for part 1, still not convinced that the algorithm implied by the instructions is accurate. Part 2 is a clusterfuck - there are two possible solutions for the example input, not one, so I don't see how the ingredient occurrence lists can be reduced. |
 | 2021 | 8    | Part 2 looked tricky, and most of the solutions in the subreddit looked, well, messy. Eventually found an obvious and simple way of doing it. Moral: stare at the input data until your eyes go fuzzy, then stare some more. |
 | 2021 | 9    | Classic AoC puzzle. After becoming dispirited with 2020 19-21, confidence was restored when I found I could type out a BFS from memory and have it work first time. |
+| 2021 | 15   | Dijkstra is just BFS with a priority queue, yes? TIL implementing the priority queue with container/heap is 50x faster than doing it with a sort. |
 
 ## Comments from u/vipul0092
 
