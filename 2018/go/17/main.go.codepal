@@ -1,0 +1,105 @@
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"regexp"
+	"strconv"
+)
+
+var clay = make(map[complex]bool)
+var settled = make(map[complex]bool)
+var flowing = make(map[complex]bool)
+var ymin, ymax float64
+
+func fill(p complex128, direction complex128) bool {
+	flowing[p] = true
+	below, left, right := p+1i, p-1, p+1
+
+	if !clay[below] {
+		if _, ok := flowing[below]; !ok && 1 <= imag(below) && imag(below) <= ymax {
+			fill(below, 1i)
+		}
+		if _, ok := settled[below]; !ok {
+			return false
+		}
+	}
+
+	lFilled := clay[left] || !flowing[left] && fill(left, -1)
+	rFilled := clay[right] || !flowing[right] && fill(right, 1)
+
+	if direction == 1i && lFilled && rFilled {
+		settled[p] = true
+
+		for clay[left] || flowing[left] {
+			settled[left] = true
+			left--
+		}
+
+		for clay[right] || flowing[right] {
+			settled[right] = true
+			right++
+		}
+	}
+
+	return direction == -1 && (lFilled || clay[left]) || direction == 1 && (rFilled || clay[right])
+}
+
+func main() {
+	file, err := os.Open("input.txt")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		re := regexp.MustCompile(`(\d+)`)
+		nums := re.FindAllString(line, -1)
+		a, _ := strconv.Atoi(nums[0])
+		b, _ := strconv.Atoi(nums[1])
+		c, _ := strconv.Atoi(nums[2])
+
+		if line[:2] == "x=" {
+			for y := b; y <= c; y++ {
+				clay[complex(float64(a)+float64(y)*1i)] = true
+			}
+		} else {
+			for x := b; x <= c; x++ {
+				clay[complex(float64(x)+float64(a)*1i)] = true
+			}
+		}
+	}
+
+	for p := range clay {
+		yl := imag(p)
+		if ymin == 0 || yl < ymin {
+			ymin = yl
+		}
+		if yl > ymax {
+			ymax = yl
+		}
+	}
+
+	fmt.Println("ymin", "ymax", ymin, ymax, "clay fields", len(clay))
+
+	fill(500, 0)
+
+	count1, count2 := 0, 0
+	for pt := range flowing {
+		if ymin <= imag(pt) && imag(pt) <= ymax {
+			count1++
+		}
+	}
+	for pt := range settled {
+		if ymin <= imag(pt) && imag(pt) <= ymax {
+			count2++
+		}
+	}
+
+	fmt.Println("part 1:", count1)
+	fmt.Println("part 2:", count2)
+}

@@ -1,0 +1,193 @@
+// https://adventofcode.com/2018/day/17
+package main
+
+import (
+	"bufio"
+	_ "embed"
+	"fmt"
+	"math"
+	"runtime"
+	"strconv"
+	"strings"
+	"time"
+)
+
+//go:embed test1.txt
+var test1 string
+
+//go:embed input.txt
+var input string
+
+type Point struct {
+	x, y int
+}
+
+func (p Point) add(q Point) Point {
+	return Point{y: p.y + q.y, x: p.x + q.x}
+}
+
+var directions []Point = []Point{
+	{y: 1, x: 0},  // S
+	{y: 0, x: -1}, // W
+	{y: 0, x: 1},  // E
+}
+
+func duration(invocation time.Time, name string) {
+	fmt.Println(name, "duration", time.Since(invocation))
+}
+
+func report(expected, result int) {
+	if expected != -1 {
+		if result != expected {
+			fmt.Println("ERROR: got", result, "expected", expected)
+		} else {
+			fmt.Println("RIGHT ANSWER:", result)
+		}
+	}
+}
+
+// or we could use K&R p61
+func atoi(s string) int {
+	if n, err := strconv.Atoi(s); err == nil {
+		return n
+	} else {
+		fmt.Println(err)
+	}
+	return 0
+}
+
+func token2range(s string) []int {
+	lr := strings.Split(s, "..")
+	if len(lr) == 1 {
+		return []int{atoi(s)}
+	} else {
+		var a, b int = atoi(lr[0]), atoi(lr[1])
+		var out []int = make([]int, 0, b-a+1)
+		for i := a; i <= b; i++ {
+			out = append(out, i)
+		}
+		return out
+	}
+}
+
+func display(clay map[Point]struct{}, water map[Point]struct{}, xmin, xmax, ymax int) {
+	for y := 0; y < ymax; y++ {
+		for x := xmin; x <= xmax; x++ {
+			if y == 0 && x == 500 {
+				fmt.Print("+")
+			} else if _, ok := clay[Point{x: x, y: y}]; ok {
+				fmt.Print("#")
+			} else if _, ok := water[Point{x: x, y: y}]; ok {
+				fmt.Print("~")
+			} else {
+				fmt.Print(".")
+			}
+		}
+		fmt.Println()
+	}
+}
+
+func part1(in string, expected int) (result int) {
+	defer duration(time.Now(), "part 1")
+
+	var clay map[Point]struct{} = make(map[Point]struct{})
+	scanner := bufio.NewScanner(strings.NewReader(in))
+	for scanner.Scan() {
+		lr := strings.Split(scanner.Text(), ", ")
+		var xstr, ystr string
+
+		if strings.HasPrefix(lr[0], "x=") {
+			xstr = lr[0][2:]
+		} else if strings.HasPrefix(lr[1], "x=") {
+			xstr = lr[1][2:]
+		}
+		if strings.HasPrefix(lr[0], "y=") {
+			ystr = lr[0][2:]
+		} else if strings.HasPrefix(lr[1], "y=") {
+			ystr = lr[1][2:]
+		}
+		for _, x := range token2range(xstr) {
+			for _, y := range token2range(ystr) {
+				clay[Point{x: x, y: y}] = struct{}{}
+			}
+		}
+	}
+	var ymin, ymax = math.MaxInt64, 0
+	for p := range clay {
+		ymin = min(ymin, p.y)
+		ymax = max(ymax, p.y)
+	}
+
+	var water map[Point]struct{} = make(map[Point]struct{})
+	var reached map[Point]struct{} = make(map[Point]struct{})
+	var spring Point = Point{x: 500, y: 0}
+	reached[spring] = struct{}{}
+
+	empty := func(p Point) bool {
+		if _, ok := clay[p]; !ok {
+			if _, ok := water[p]; !ok {
+				return true
+			}
+		}
+		return false
+	}
+
+	wetten := func(p Point) {
+		if p.y > ymax || p.y < ymin {
+			return
+		}
+		water[p] = struct{}{}
+		reached[p] = struct{}{}
+	}
+
+	// loop until reached stops growing
+	for step := 0; step < 16; step++ {
+		water[spring] = struct{}{}
+		for y := ymax; y >= 0; y-- {
+			for p := range water {
+				if p.y != y {
+					continue
+				}
+				var q Point = p.add(Point{x: 0, y: 1})
+				if empty(q) {
+					delete(water, p)
+					wetten(q)
+				} else {
+					var l Point = p.add(Point{x: -1, y: 0})
+					var r Point = p.add(Point{x: 1, y: 0})
+					if empty(l) || empty(r) {
+						if empty(l) {
+							delete(water, p)
+							wetten(l)
+						} else {
+							delete(water, p)
+							wetten(r)
+						}
+					}
+				}
+			}
+		}
+	}
+	display(clay, reached, 490, 510, 15)
+	result = len(reached)
+	report(expected, result)
+	return result
+}
+
+func main() {
+	defer duration(time.Now(), "main")
+
+	part1(test1, 57)
+	//	part2(test1, 0)
+
+	{
+		var memStats runtime.MemStats
+		runtime.ReadMemStats(&memStats)
+		fmt.Printf("Heap memory (in bytes): %d\n", memStats.HeapAlloc)
+		fmt.Printf("Number of garbage collections: %d\n", memStats.NumGC)
+	}
+}
+
+/*
+$ go run main.go
+*/

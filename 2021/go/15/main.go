@@ -86,7 +86,7 @@ func atoi(s string) int {
 }
 
 func duration(invocation time.Time, name string) {
-	fmt.Println(name, time.Since(invocation))
+	fmt.Println(name, "duration", time.Since(invocation))
 }
 
 func report(expected, result int) {

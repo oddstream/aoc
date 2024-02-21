@@ -26,6 +26,7 @@ Use one logging/trace system, for example in Go use `log.Println`, in Lua use a 
 4. Avoid regular expressions, especially in Go. Like someone said: "if you solve a problem with regular expressions, you now have two problems". `fmt.Sscanf()` , `strings.Split()` and `strings.Fields()` can go a long way.
 5. Seeing the word 'infinite' in the description means you should be using maps, not a fixed size grid.
 6. A lot of stumbles and bad starts happen because I don't fully understand the puzzle descriptions, or think I can see ambiguities. When this happens, it's often helpful to work out a solution by hand in a text editor. At first, I laughed when I saw someone doing AoC in vim, but now I understand that completely.
+7. Visualisation can be key; in a lot of puzzles being able to see the data/solution as it progresses can be very helpful when tracking down unexpected behaviour. 2018 day 17 (the one where water cascades down from a spring) is a key example. 
 
 ## Observations on language
 
@@ -62,7 +63,7 @@ print(bitoper(6,3,AND))  --> 2
 - [Go commentary 2019](https://dhconnelly.com/advent-of-code-2019-commentary.html)
 
 ## Notable repos/commentaries
-
+- [Michael Fogleman](https://www.michaelfogleman.com/aoc18/#17)
 - [Go](https://github.com/alexchao26/advent-of-code-go)
 - [Go 2023, 2022, 2021, 2020, 2019](https://github.com/lynerist?tab=repositories)
 - [Go](https://github.com/xorkevin?tab=repositories)
@@ -73,6 +74,7 @@ print(bitoper(6,3,AND))  --> 2
 - [F#](https://github.com/CameronAavik/AdventOfCode)
 - [AWK](https://github.com/phillbush/aoc)
 - [Lua 2015, 2019, 2023](https://github.com/DeybisMelendez/AdventOfCode/tree/master)
+- [Clear and *BLAZINGLY FAST* solutions in JS](https://github.com/JoanaBLate/advent-of-code-js/tree/main)
 
 ## Notable puzzles
 
@@ -80,18 +82,22 @@ print(bitoper(6,3,AND))  --> 2
 | ---- | ---- | ------------------------------------------------------------ |
 | 2018 | 15   | Works on all the test cases but not the actual input. Have respected all the advice from others regarding sort order. The answer depends on the order of direction looks in the the BFS function, which is a big clue to where I'm going wrong, but I can't decipher it. |
 | 2018 | 16   | Great puzzle, whittling down occurrence lists.               |
-| 2019 | 7    | Part 2 - instructions unclear - turned out, instruction pointer needed to be saved between invocations of each amplifier, not just the []int instructions/memory. |
-| 2019 | 10   | Proud of part 1 solution; did it all in integers without calculating any angles or creating an actual grid. Solution uses a map to hold the asteroid positions, and calculates if any asteroids lie between two other asteroids using an algorithm copied from stack overflow. It's a bit O(n3) as it does three nested loops over the asteroid map, and takes nearly a second on my machine, so no prizes for efficiency.  Part 2 does calculate angles, but only when sorting a slice of asteroids visible from the laser point. |
+| 2018 | 17   | Tricky. Got it on the third attempt after two days, after two false starts (1) by running a stepped simulation on the water blocks (nearly had it, but they spilled in unexpected places), then (2) by trying a DFS queue-style solution, and finally (3) a doubtful-looking but finally successful and quick recursive approach. Much relief that part two was already solved by part one. Also, tried several solutions from other participants from the solutions subreddit: only one worked on my input, the rest got stuck in some nested loop (I can barely read Python, let alone debug it). |
+| 2019 | 7    | Part two - instructions unclear - turned out, instruction pointer needed to be saved between invocations of each amplifier, not just the []int instructions/memory. |
+| 2019 | 10   | Proud of part one solution; did it all in integers without calculating any angles or creating an actual grid. Solution uses a map to hold the asteroid positions, and calculates if any asteroids lie between two other asteroids using an algorithm copied from stack overflow. It's a bit O(n3) as it does three nested loops over the asteroid map, and takes nearly a second on my machine, so no prizes for efficiency.  Part two does calculate angles, but only when sorting a slice of asteroids visible from the laser point. |
 | 2019 | 14   | Could see the data structures and general approach as soon as I saw the input, but there was something in the middle that just wouldn't gel. Eventually borrowed heavily from a couple of other solutions. |
 | 2020 | 7    | Only half-grokked this one; loaded the input into a map of maps, which was fine, but maybe should have used a map of trees. |
 | 2020 | 16   | Like 2018/6; great puzzle, whittling down occurrence lists.  |
-| 2020 | 18   | For part one, used a simple infix-to-postfix converter (that I first borrowed from Donald Alcock's "Illustrating Pascal" back in 1989) and a postfix evaluator. *Almost* smiled with delight when I found that I only had to change one character in the precedence map to solve part 2. |
-| 2020 | 19   | Part 1 tricky enough. Brain saw part 2, thought for a moment, then said "nope". |
+| 2020 | 18   | For part one, used a simple infix-to-postfix converter (that I first borrowed from Donald Alcock's "Illustrating Pascal" back in 1989) and a postfix evaluator. Delighted when I found that I only had to change one character in the precedence map to solve part two. |
+| 2020 | 19   | Part one tricky enough. Brain saw part two, thought for a moment, then said "nope". |
 | 2020 | 20   | Stonking big puzzle. Stumbled upon a cheat way of solving part 1, can't yet wrap my brain around a way to do the first half of part 2 (assemble the tiles) in an efficient way (the second part, find the pattern in the picture, seems straight forward, if I could just get to it). |
-| 2020 | 21   | Trouble grokking the instructions for part 1, still not convinced that the algorithm implied by the instructions is accurate. Part 2 is a clusterfuck - there are two possible solutions for the example input, not one, so I don't see how the ingredient occurrence lists can be reduced. |
-| 2021 | 8    | Part 2 looked tricky, and most of the solutions in the subreddit looked, well, messy. Eventually found an obvious and simple way of doing it. Moral: stare at the input data until your eyes go fuzzy, then stare some more. |
+| 2020 | 21   | Trouble grokking the instructions for part one, still not convinced that the algorithm implied by the instructions is accurate. Part two is a clusterfuck - there are two possible solutions for the example input, not one, so I don't see how the ingredient occurrence lists can be reduced. |
+| 2021 | 8    | Part two looked tricky, and most of the solutions in the subreddit looked, well, messy. Eventually found an obvious and simple way of doing it. Moral: stare at the input data until your eyes go fuzzy, then stare some more. |
 | 2021 | 9    | Classic AoC puzzle. After becoming dispirited with 2020 19-21, confidence was restored when I found I could type out a BFS from memory and have it work first time. |
 | 2021 | 15   | Dijkstra is just BFS with a priority queue, yes? TIL implementing the priority queue with container/heap is 50x faster than doing it with a sort. |
+| 2021 | 18   | Snailfish numbers? Can't decide between a regexp based or binary tree based solution. Suspect there's a third, simpler, solution but couldn't see it. Eventually the indecision got me beat and I put this aside for later. |
+| 2023 | 19   | Just not grokking part two at the moment ...                 |
+| 2023 | 21   | Part one coded up in 15 minutes, got right answer first time. Second part? Well, a brute force extension of part one would probably never finish before the electricity ran out (6 hours to do 5000 steps, gets exponentially slower), so spending time exploring patterns in the input and partial outputs. Generating lots of numbers that don't seem to fit together. |
 
 ## Comments from u/vipul0092
 

@@ -4,21 +4,25 @@
 
 local log = require 'log'
 
+---split library function
+---@param str string eg "a<2006:qkg,m>2090:A,rfg"
+---@param pat string
+---@return table eg the above would be split into three strings
 local function split(str, pat)
 	local t = {}  -- NOTE: use {n = 0} in Lua-5.0
 	local fpat = "(.-)" .. pat
 	local last_end = 1
-	local s, e, cap = str:find(fpat, 1)
+	local s, e, capture = str:find(fpat, 1)
 	while s do
-	   if s ~= 1 or cap ~= "" then
-		  table.insert(t, cap)
+	   if s ~= 1 or capture ~= "" then
+		  table.insert(t, capture)
 	   end
 	   last_end = e+1
-	   s, e, cap = str:find(fpat, last_end)
+	   s, e, capture = str:find(fpat, last_end)
 	end
 	if last_end <= #str then
-	   cap = str:sub(last_end)
-	   table.insert(t, cap)
+	   capture = str:sub(last_end)
+	   table.insert(t, capture)
 	end
 	return t
 end
@@ -82,22 +86,17 @@ local function pruneWorkflows(workflows, wfn, dst)
 end
 ]]
 
--- MAYBE turn each rule set into a Lua function
--- This basically turns qqz{s>2770:qs,m<1801:hdj,R}
--- into the function qqz_ = lambda: s>2770 and qs_() or m<1801 and hdj_() or R_()
-
 ---turn rules in a string to a list of parsed rules
 ---@param rules string like s>2770:qs,m<1801:hdj,R
----@return table[]
+---@return table[] each containing var, cmp, num, dst
 local function parseRules(rules)
 	local out = {}
-	local rulesList = split(rules, ',')
-	for _, rule in ipairs(rulesList) do
-		local var, cmp, num, dst
-		dst = rule:match'^(%a+)$'	-- could be another rule or A or R
+	for _, rule in ipairs(split(rules, ',')) do
+		local dst = rule:match'^(%a+)$'	-- could be another rule or A or R
 		if dst then
 			out[#out+1] = {dst=dst}
 		else
+			local var, cmp, num
 			var, cmp, num, dst = rule:match'(%l+)([%<%>])(%d+):(%a+)'
 			if var and cmp and num and dst then
 				num = tonumber(num)
@@ -114,6 +113,8 @@ end
 ---@param vars table
 ---@return string
 local function machine(wf, vars)
+	-- a rule has .cmp .dst .num .var
+	-- vars are .x .m .a .s
 	for _, rule in ipairs(wf) do
 		if not rule.cmp then -- var cmp num will be nil
 			return rule.dst
@@ -148,6 +149,8 @@ local function partOne(filename, expected)
 		end
 		if buildingRules then
 			-- px{a<2006:qkq,m>2090:A,rfg}
+			-- key{filter[], default}
+			-- where filter is char op number : key
 			local workflowName, rules
 			workflowName, rules = line:match'(%a+){(.+)}'
 			if workflowName and rules then
@@ -156,29 +159,8 @@ local function partOne(filename, expected)
 				print('input error', line)
 			end
 		else
---[[
-			if not prunedWorkflows then
-				-- pruneWorkflows(workflows, 'gd', 'R')
-				-- pruneWorkflows(workflows, 'lnx', 'A')
-				-- pruneWorkflows(workflows, 'qs', 'A')
-
-				local prunes = 0
-				local wfn, dst = canPruneWorkflows(workflows)
-				while wfn and dst do
-					pruneWorkflows(workflows, wfn, dst)
-					prunes = prunes + 1
-					wfn, dst = canPruneWorkflows(workflows)
-				end
-				print(prunes, 'pruned')
-
-				-- if wfn and dst then
-					-- pruneWorkflows(workflows, wfn, dst)
-				-- end
-
-				prunedWorkflows = true
-			end
-]]
-			-- {x=787,m=2655,a=1222,s=2876}
+			-- turn a string like {x=787,m=2655,a=1222,s=2876}
+			-- into a Lua table the quick and dirty way
 			local f, err = load('return ' .. line)	-- don't do this at home
 			if err then print(err) end
 			local t = f()
@@ -224,10 +206,51 @@ local function partOne(filename, expected)
 		print('s', smin, smax)
 	end
 ]]
+
+--[[
+	test1
+x	1416	2662
+m	838		2090
+a	1716	3333
+s	537		3448
+
+	input
+x	138		3936
+m	98		3854
+a	11		3910
+s	100		3971
+]]
+
 	if expected and result ~= expected then
 		log.error('expected %d\n', expected)
 	end
 	return result
+end
+
+---@param wf table[]
+---@param var string one of x m a s
+---@param minmax table {min=, max=}
+---@return string dst
+---@return table {min, max}
+local function ranger(wf, var, minmax)
+	-- a rule has .cmp .dst .num .var
+	for _, rule in ipairs(wf) do
+		if not rule.cmp then -- only rule.dst will be set
+			return rule.dst, minmax
+		elseif rule.var == var then
+			if rule.cmp == '<' then
+				minmax.max = rule.num - 1
+				print('\t', var, rule.cmp, rule.num, minmax.min, minmax.max)
+				return rule.dst, minmax
+			elseif rule.cmp == '>' then
+				minmax.min = rule.num + 1
+				print('\t', var, rule.cmp, rule.num, minmax.min, minmax.max)
+				return rule.dst, minmax
+			end
+		end
+	end
+	log.error('ranger error')
+	return "R", {min=1, max=4000}	-- shouldn't ever come here
 end
 
 ---@param filename string
@@ -254,31 +277,32 @@ local function partTwo(filename, expected)
 
 	-- https://old.reddit.com/r/adventofcode/comments/18lwcw2/2023_day_19_an_equivalent_part_2_example_spoilers/
 
-	for x = 138-1, 3936+1 do
-		for m = 98-1, 3854+1 do
-			for a = 11-1, 3910+1 do
-				for s = 100-1, 3971+1 do
-					local res = 'in'
-					repeat
-						res = machine(workflows[res], {['x']=x, ['m']=m, ['a']=a, ['s']=s})
-					until res == 'A' or res == 'R'
-					if res == 'A' then
-						result = result + 1
-					end
-				end
-			end
+	result = 1
+	for _, var in pairs{'x', 'm', 'a', 's'} do
+		local minmax = {min=1, max=4000}
+		local dst = 'in'
+		repeat
+			dst, minmax = ranger(workflows[dst], var, minmax)
+		until dst == 'A' or dst == 'R'
+		if dst == 'A' then
+			print(var, 'accepted', minmax.min, minmax.max)
+			result = result * (minmax.max - minmax.min)
+		else
+			print(var, 'not accepted', minmax.min, minmax.max)
 		end
 	end
 
 	if expected and result ~= expected then
-		log.error('expected %d\n', expected)
+		log.error('expected %d, got %d\n', expected, result)
 	end
 	return result
 end
 
 log.report('%s\n', _VERSION)
--- log.report('part one test %d\n', partOne('19-test.txt', 19114))
--- log.report('part one      %d\n', partOne('19-input.txt', 449531))
+log.report('part one test %d\n', partOne('19-test.txt', 19114))
+log.report('part one      %d\n', partOne('19-input.txt', 449531))
 -- log.report('part two test %d\n', partTwo('19-test.txt', 167409079868000))
--- log.report('part two      %d\n', partTwo('19-input.txt', 0))
+-- log.report('part two      %d\n', partTwo('19-input.txt', 122756210763577))
 
+-- 4000*4000*4000*4000 = 256000000000000, 14 digits, and yet correct input result is 15 digits
+-- grok https://advent-of-code.xavd.id/writeups/2023/day/19/
