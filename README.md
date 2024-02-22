@@ -4,6 +4,8 @@ Chapeau to Eric Wastl (http://was.tl/) (also for [vanilla js](http://vanilla-js.
 
 The aim is to - eventually - do all puzzles from all years. Some of the code is quick-and-dirty and I'm sometimes surprised to get the right answer. Occasionally I ask GPT-4 for help with a low-level function or algorithm in case I've missed something simple; I've given up on Google's Bard, which has yet to yield any correct answers. When I get hopelessly stuck or a brute force solution is taking too long, I have a look at the solutions mega thread on reddit to get ideas. 
 
+"every problem has a solution that completes in at most 15 seconds on ten-year-old hardware"
+
 ## Coding style
 
 The first line of each solution should have a comment linking to the problem description page.
@@ -83,6 +85,7 @@ print(bitoper(6,3,AND))  --> 2
 | 2018 | 15   | Works on all the test cases but not the actual input. Have respected all the advice from others regarding sort order. The answer depends on the order of direction looks in the the BFS function, which is a big clue to where I'm going wrong, but I can't decipher it. |
 | 2018 | 16   | Great puzzle, whittling down occurrence lists.               |
 | 2018 | 17   | Tricky. Got it on the third attempt after two days, after two false starts (1) by running a stepped simulation on the water blocks (nearly had it, but they spilled in unexpected places), then (2) by trying a DFS queue-style solution, and finally (3) a doubtful-looking but finally successful and quick recursive approach. Much relief that part two was already solved by part one. Also, tried several solutions from other participants from the solutions subreddit: only one worked on my input, the rest got stuck in some nested loop (I can barely read Python, let alone debug it). |
+| 2018 | 19   | Part one just borrows the guts of the assembly language interpreter from day 16. Part two was one of those "run forever" problems, so study the registers at intervals; reg[4] contains a large number that does not change, and reg[5] contains an increasing count of something. From previous experience with AoC you can guess that it's the sum of all factors (integer divisors) of reg[4], so compute that directly. Feels like cheating. |
 | 2019 | 7    | Part two - instructions unclear - turned out, instruction pointer needed to be saved between invocations of each amplifier, not just the []int instructions/memory. |
 | 2019 | 10   | Proud of part one solution; did it all in integers without calculating any angles or creating an actual grid. Solution uses a map to hold the asteroid positions, and calculates if any asteroids lie between two other asteroids using an algorithm copied from stack overflow. It's a bit O(n3) as it does three nested loops over the asteroid map, and takes nearly a second on my machine, so no prizes for efficiency.  Part two does calculate angles, but only when sorting a slice of asteroids visible from the laser point. |
 | 2019 | 14   | Could see the data structures and general approach as soon as I saw the input, but there was something in the middle that just wouldn't gel. Eventually borrowed heavily from a couple of other solutions. |
