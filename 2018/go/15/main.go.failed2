@@ -10,8 +10,6 @@ import (
 	"time"
 )
 
-const debugChecks bool = true
-
 //go:embed test1.txt
 var test1 string
 
@@ -33,20 +31,19 @@ var test6 string
 //go:embed input.txt
 var input string
 
-type (
-	Area [][]string
-	// Unit describes an Elf or a Goblin
-	Unit struct {
-		Point
-		species                string // "E"lf or "G"oblin
-		attackPower, hitPoints int    // starts with 3, 200
-	}
-	// Units is a container for all alive units
-	Units map[Point]*Unit
-	Point struct {
-		y, x int
-	}
-)
+type Square struct {
+	Point
+	wall bool
+	unit *Unit
+	// open space if wall == false && unit == nil
+}
+
+// Unit describes an Elf or a Goblin
+type Unit struct {
+	Point
+	species                string // "E"lf or "G"oblin
+	attackPower, hitPoints int    // starts with 3, 200
+}
 
 // TODO at what point does the output from this, and
 // python3 15.y 3<input.txt
@@ -58,17 +55,27 @@ type (
 // grid will become [][]string with "#" wall else not-a-wall
 // this is making a change just to keep the fingers busy,
 // to see if anything shakes out
-
-func (a Area) ingrid(p Point) bool {
-	return p.x >= 0 && p.y >= 0 && p.x < len(a[0]) && p.y < len(a)
-}
+type Area [][]Square
 
 func (a Area) wall(p Point) bool {
-	return a[p.y][p.x] == "#"
+	return a[p.y][p.x].wall
 }
 
+func (a Area) unit(p Point) *Unit {
+	return a[p.y][p.x].unit
+}
+
+func (a Area) setUnit(p Point, unit *Unit) {
+	a[p.y][p.x].unit = unit
+}
+
+// square in area is unoccupied if it is "." and has no units on it
 func (a Area) unoccupied(p Point) bool {
-	return a[p.y][p.x] == "."
+	return !a.wall(p) && a.unit(p) == nil
+}
+
+type Point struct {
+	y, x int
 }
 
 func (p Point) add(q Point) Point {
@@ -109,28 +116,26 @@ func report(expected, result int) {
 }
 
 // load the area and units from embedded input
-func loadInput(s string, elfAttackPower int) (Area, map[Point]*Unit) {
+func loadInput(s string, elfAttackPower int) Area {
 	var area Area
-	var units Units = make(Units)
-
 	scanner := bufio.NewScanner(strings.NewReader(s))
 	var y int
 	for scanner.Scan() {
-		var row []string
+		var row []Square
 		for x, ch := range scanner.Text() {
-			var p Point = Point{y: y, x: x}
+			var pt Point = Point{y: y, x: x}
 			if ch == '#' {
-				row = append(row, "#")
+				row = append(row, Square{Point: pt, wall: true})
 			} else if ch == '.' {
-				row = append(row, ".")
-			} else if ch == 'E' {
-				row = append(row, ".")
-				var u Unit = Unit{Point: p, species: "E", hitPoints: 200, attackPower: elfAttackPower}
-				units[p] = &u
-			} else if ch == 'G' {
-				row = append(row, ".")
-				var u Unit = Unit{Point: p, species: "G", hitPoints: 200, attackPower: 3}
-				units[p] = &u
+				row = append(row, Square{Point: pt})
+			} else {
+				var u Unit = Unit{Point: pt, species: string(ch), hitPoints: 200}
+				if ch == 'E' {
+					u.attackPower = elfAttackPower
+				} else {
+					u.attackPower = 3
+				}
+				row = append(row, Square{Point: pt, unit: &u})
 			}
 		}
 		area = append(area, row)
@@ -140,31 +145,7 @@ func loadInput(s string, elfAttackPower int) (Area, map[Point]*Unit) {
 		fmt.Println(err)
 
 	}
-	return area, units
-}
-
-func cull(in Units) Units {
-	var out Units = make(Units)
-	for p, u := range in {
-		if u.hitPoints > 0 {
-			out[p] = u
-		}
-	}
-	// if len(in) != len(out) {
-	// 	fmt.Println(len(in)-len(out), "units culled")
-	// }
-	return out
-}
-
-func alive(units Units, p Point) bool {
-	var u *Unit = units[p]
-	if u == nil {
-		return false
-	}
-	if u.hitPoints > 0 {
-		return true
-	}
-	return false
+	return area
 }
 
 // utility function for sort.Slice()
@@ -176,26 +157,20 @@ func readingOrder(a, b Point) bool {
 	}
 }
 
-// "To attack, the unit first determines all of the targets that are in range of it
-// by being immediately adjacent to it. If there are no such targets,
-// the unit ends its turn. Otherwise, the adjacent target with the fewest hit points is selected;
-// in a tie, the adjacent target with the fewest hit points which is first in reading order is selected."
-func findEnemyInRange(units Units, p Point) *Unit {
+// return a list of enemy units adjacent to this unit
+// sorted into attack order (hit points, reading order)
+func findEnemiesInRange(area Area, unit *Unit) []*Unit {
 	var inrange []*Unit
-	var unit = units[p]
 	for _, dir := range toutesDirections {
-		var q Point = p.add(dir)
-		if enemy, ok := units[q]; ok {
-			if enemy.species == unit.species {
-				continue // not an enemy
+		var q Point = unit.Point.add(dir)
+		if enemy := area.unit(q); enemy != nil {
+			if enemy.hitPoints <= 0 {
+				panic("findEnemiesInRange: dead enemy")
 			}
-			if enemy.hitPoints > 0 {
+			if enemy.species != unit.species {
 				inrange = append(inrange, enemy)
 			}
 		}
-	}
-	if len(inrange) == 0 {
-		return nil
 	}
 	sort.Slice(inrange, func(a, b int) bool {
 		if inrange[a].hitPoints != inrange[b].hitPoints {
@@ -204,31 +179,28 @@ func findEnemyInRange(units Units, p Point) *Unit {
 			return readingOrder(inrange[a].Point, inrange[b].Point)
 		}
 	})
-	return inrange[0]
+	return inrange
 }
 
-func attack(units Units, unit *Unit, enemy *Unit) {
+func attack(area Area, unit *Unit, enemy *Unit) {
 	// attack target with lowest hit points (in reading order)
-	if debugChecks && enemy.hitPoints <= 0 {
+	if enemy.hitPoints <= 0 {
 		panic("attack: dead enemy")
 	}
 	enemy.hitPoints -= unit.attackPower
 	if enemy.hitPoints <= 0 {
 		fmt.Println(enemy.species, "killed")
-		// delete(units, unit.Point) // TODO maybe postpone this, cull at end of round
+		area.setUnit(enemy.Point, nil)
 	}
 }
 
-// return (up to four) points surrounding a unit's point
-func findAdjacentSquares(area Area, units Units, p Point) []Point {
+// return (up to four) points surrounding this unit's point
+func findAdjacentSquares(area Area, unit *Unit) []Point {
 	var targets = []Point{}
 	for _, dir := range toutesDirections {
-		var q Point = p.add(dir)
+		var q Point = unit.Point.add(dir)
 		if area.unoccupied(q) {
-			u := units[q]
-			if u == nil || u.hitPoints <= 0 {
-				targets = append(targets, q)
-			}
+			targets = append(targets, q)
 		}
 	}
 	return targets
@@ -236,30 +208,28 @@ func findAdjacentSquares(area Area, units Units, p Point) []Point {
 
 // return a list of all the enemies (targets) of this unit
 // in reading order
-func findAllEnemies(units Units, unit *Unit) []*Unit {
+func findAllEnemies(area Area, unit *Unit) []*Unit {
 	var enemies []*Unit
-	for _, enemy := range units {
-		if enemy.species == unit.species {
-			continue // not an enemy
-		}
-		if enemy.hitPoints > 0 {
-			enemies = append(enemies, enemy)
+	for y := 0; y < len(area); y++ {
+		for x := 0; x < len(area[0]); x++ {
+			if enemy := area.unit(Point{y: y, x: x}); enemy != nil {
+				if enemy.hitPoints <= 0 {
+					panic("findAllEnemies: dead enemy")
+				}
+				if enemy.species != unit.species {
+					enemies = append(enemies, enemy)
+				}
+			}
 		}
 	}
-	sort.Slice(enemies, func(a, b int) bool {
-		return readingOrder(enemies[a].Point, enemies[b].Point)
-	})
 	return enemies
 }
 
-func bfs(area Area, units Units, start, end Point) (int, Point) {
+func bfs(area Area, start, end Point) (int, Point) {
 	type BfsPoint struct {
 		Point
 		steps  int
 		parent *BfsPoint
-	}
-	unoccupied := func(p Point) bool {
-		return !area.wall(p) && !alive(units, p)
 	}
 
 	var seen map[Point]struct{} = make(map[Point]struct{})
@@ -270,30 +240,20 @@ func bfs(area Area, units Units, start, end Point) (int, Point) {
 		p, q = q[0], q[1:]
 		for _, dir := range toutesDirectionsBfs {
 			var np Point = p.Point.add(dir)
-			if !area.ingrid(np) {
-				continue
-			}
-			if !unoccupied(np) {
-				continue
-			}
-			if _, ok := seen[np]; ok {
-				continue
-			}
-			seen[np] = struct{}{}
-			var bfsp BfsPoint = BfsPoint{Point: np, parent: &p, steps: p.steps + 1}
-			if np == end {
-				var firstStep Point
-				for par := &bfsp; par.parent != nil; par = par.parent {
-					firstStep = par.Point
-					if debugChecks {
-						if !unoccupied(firstStep) {
-							panic("bfs: firstStep is occupied")
+			if _, ok := seen[np]; !ok {
+				seen[np] = struct{}{}
+				if area.unoccupied(np) {
+					var bfsp BfsPoint = BfsPoint{Point: np, parent: &p, steps: p.steps + 1}
+					if np == end {
+						var firstStep Point
+						for par := &bfsp; par.parent != nil; par = par.parent {
+							firstStep = par.Point
 						}
+						return p.steps + 1, firstStep
 					}
+					q = append(q, bfsp)
 				}
-				return p.steps + 1, firstStep
 			}
-			q = append(q, bfsp)
 		}
 		// sort.Slice(q, func(i, j int) bool {
 		// 	// if q[i].steps != q[j].steps {
@@ -307,7 +267,7 @@ func bfs(area Area, units Units, start, end Point) (int, Point) {
 
 // select the nearest reachable target square from a list of target squares
 // (which is are unoccupied squares adjacent to an enemy)
-func selectTarget(area Area, units Units, unit *Unit, targets map[Point]struct{}) (bool, Point) {
+func selectTarget(area Area, unit *Unit, targets map[Point]struct{}) (bool, Point) {
 	type Target struct {
 		steps     int
 		target    Point
@@ -315,27 +275,14 @@ func selectTarget(area Area, units Units, unit *Unit, targets map[Point]struct{}
 	}
 	var t []Target
 	for end := range targets {
-		if debugChecks {
-			if !area.unoccupied(end) {
-				panic("selectTarget: end is a wall")
+		if steps, firstStep := bfs(area, unit.Point, end); steps != -1 {
+			if steps == 0 {
+				fmt.Println("steps is zero") // plenty of these if don't have steps + 1 from bfs()...
 			}
-			if u := units[end]; u != nil && u.hitPoints > 0 {
-				panic("selectTarget: end has an alive unit")
+			if firstStep == unit.Point {
+				fmt.Println("first step is same as start") // ...but none of these
 			}
-		}
-		if steps, firstStep := bfs(area, units, unit.Point, end); steps != -1 {
-			if debugChecks {
-				if steps == 0 {
-					panic("selectTarget: steps is zero") // plenty of these if don't have steps + 1 from bfs()...
-				}
-				if firstStep == unit.Point {
-					panic("selectTarget: first step is same as start") // ...but none of these
-				}
-				if area.wall(firstStep) {
-					panic("selectTarget: first step is a wall") // ...but none of these
-				}
-			}
-			t = append(t, Target{steps: steps, target: end, firstStep: firstStep})
+			t = append(t, Target{steps, end, firstStep})
 		}
 	}
 	if len(t) == 0 {
@@ -371,29 +318,22 @@ func selectTarget(area Area, units Units, unit *Unit, targets map[Point]struct{}
 			return readingOrder(t[a].firstStep, t[b].firstStep)
 		}
 	})
-	if debugChecks && !area.unoccupied(t[0].firstStep) {
-		panic("chosen step is a wall")
-	}
 	return true, t[0].firstStep
 }
 
-func move(units Units, unit *Unit, newPoint Point) {
-	if debugChecks {
-		if unit != units[unit.Point] {
-			panic("move: unit has moved")
-		}
-		if u, ok := units[newPoint]; ok {
-			if u.hitPoints > 0 {
-				panic("move: new point already has an alive unit")
-			}
-		}
+func move(area Area, unit *Unit, newPoint Point) {
+	if !area.unoccupied(newPoint) {
+		panic("unit overlap")
 	}
-	delete(units, unit.Point)
+	// if !(unit.Point.y == nextPoint.y+1 || unit.Point.y == nextPoint.y-1 || unit.Point.x == nextPoint.x+1 || unit.Point.x == nextPoint.x-1) {
+	// 	panic("move: a point too far")
+	// }
+	area.setUnit(unit.Point, nil)
 	unit.Point = newPoint
-	units[unit.Point] = unit
+	area.setUnit(unit.Point, unit)
 }
 
-func round(area Area, units Units) (gameOver bool) {
+func round(area Area) (gameOver bool) {
 	// in each round, each unit that is still alive takes a turn,
 	// resolving all of its actions before the next unit's turn begins.
 	// On each unit's turn,
@@ -404,16 +344,13 @@ func round(area Area, units Units) (gameOver bool) {
 	// is the reading order of their starting positions in that round"
 	// make a list of all units in reading order of their starting positions
 	var unitsToProcess []*Unit
-	for _, unit := range units {
-		if unit.hitPoints <= 0 {
-			continue
-			// panic("round: found a dead unit")
+	for y := 0; y < len(area); y++ {
+		for x := 0; x < len(area[0]); x++ {
+			if unit := area.unit(Point{y: y, x: x}); unit != nil {
+				unitsToProcess = append(unitsToProcess, unit)
+			}
 		}
-		unitsToProcess = append(unitsToProcess, unit)
 	}
-	sort.Slice(unitsToProcess, func(a, b int) bool {
-		return readingOrder(unitsToProcess[a].Point, unitsToProcess[b].Point)
-	})
 
 	/*
 		The ending condition is a bit subtle.
@@ -427,21 +364,20 @@ func round(area Area, units Units) (gameOver bool) {
 		the round is considered incomplete and not counted.
 	*/
 	for _, unit := range unitsToProcess {
-		if unit.hitPoints <= 0 {
+		if area.unit(unit.Point) == nil {
 			continue // this unit was killed earlier in this round
 		}
 		// "Each unit begins its turn by identifying all possible targets (enemy units).
 		// If no targets remain, combat ends."
 		var enemies []*Unit
-		if enemies = findAllEnemies(units, unit); len(enemies) == 0 {
-			fmt.Println("no more enemies")
+		if enemies = findAllEnemies(area, unit); len(enemies) == 0 {
 			return true // gameOver
 		}
 
-		if enemy := findEnemyInRange(units, unit.Point); enemy != nil {
+		if inrange := findEnemiesInRange(area, unit); len(inrange) > 0 {
 			// "If the unit is already in range of a target,
 			// it does not move, but continues its turn with an attack."
-			attack(units, unit, enemy)
+			attack(area, unit, inrange[0])
 		} else {
 			// "the unit identifies all of the open squares (.)
 			// that are in range of each target;
@@ -456,33 +392,18 @@ func round(area Area, units Units) (gameOver bool) {
 				if enemy.hitPoints <= 0 {
 					panic("round: dead enemy")
 				}
-				for _, pt := range findAdjacentSquares(area, units, enemy.Point) {
+				for _, pt := range findAdjacentSquares(area, enemy) {
 					adjacentSquares[pt] = struct{}{}
 				}
 			}
 			if len(adjacentSquares) > 0 {
-				if debugChecks {
-					for p := range adjacentSquares {
-						if !area.unoccupied(p) {
-							panic("round: adjacent point is a wall")
-						}
-					}
-				}
-				if ok, nextPoint := selectTarget(area, units, unit, adjacentSquares); ok {
-					if debugChecks {
-						if !area.unoccupied(nextPoint) {
-							panic("round: next point is a wall")
-						}
-						if u := units[nextPoint]; u != nil && u.hitPoints > 0 {
-							panic("selectTarget: nextPoint has an alive unit")
-						}
-					}
-
+				if ok, nextPoint := selectTarget(area, unit, adjacentSquares); ok {
 					// take a single step
-					move(units, unit, nextPoint)
+					move(area, unit, nextPoint)
 					// now try to attack again
-					if enemy := findEnemyInRange(units, unit.Point); enemy != nil {
-						attack(units, unit, enemy)
+					inrange := findEnemiesInRange(area, unit)
+					if len(inrange) > 0 {
+						attack(area, unit, inrange[0])
 					}
 				}
 			}
@@ -492,33 +413,39 @@ func round(area Area, units Units) (gameOver bool) {
 	return false // not gameOver
 }
 
-func numSpecies(units Units, species string) int {
+func numSpecies(area Area, species string) int {
 	var count int
-	for _, unit := range units {
-		if unit.species == species {
-			count += 1
+	for y := 0; y < len(area); y++ {
+		for x := 0; x < len(area[0]); x++ {
+			if unit := area.unit(Point{y: y, x: x}); unit != nil {
+				if unit.species == species {
+					count += 1
+				}
+			}
 		}
 	}
 	return count
 }
 
-func sumHitPoints(units Units) int {
+func sumHitPoints(area Area) int {
 	var sum int
-	for _, unit := range units {
-		if unit.hitPoints > 0 {
-			sum += unit.hitPoints
+	for y := 0; y < len(area); y++ {
+		for x := 0; x < len(area[0]); x++ {
+			if unit := area.unit(Point{y: y, x: x}); unit != nil {
+				sum += unit.hitPoints
+			}
 		}
 	}
 	return sum
 }
 
-func displayArea(title string, area Area, units Units) {
+func displayArea(title string, area Area) {
 	fmt.Println(title)
 	for y := 0; y < len(area); y++ {
 		var displayUnits []*Unit
 		for x := 0; x < len(area[0]); x++ {
 			pt := Point{y: y, x: x}
-			if unit, ok := units[pt]; ok {
+			if unit := area.unit(pt); unit != nil {
 				fmt.Print(unit.species)
 				displayUnits = append(displayUnits, unit)
 			} else if area.wall(pt) {
@@ -540,21 +467,40 @@ func displayArea(title string, area Area, units Units) {
 
 func partOne(in string, expected int) {
 	defer duration(time.Now(), "part 1")
-	area, units := loadInput(in, 3)
+	area := loadInput(in, 3)
+
+	// displayArea("Initially:", area)
+	// round(area)
+	// displayArea("After 1 round:", area)
+	// round(area)
+	// displayArea("After 2 rounds:", area)
 
 	var result int
 
 	for i := 0; i < 110; i++ {
-		if round(area, units) {
-			fmt.Println("break after", i, "rounds with", sumHitPoints(units), "hit points")
-			result = i * sumHitPoints(units)
+		if round(area) {
+			fmt.Println("break after", i, "rounds with", sumHitPoints(area), "hit points")
+			result = i * sumHitPoints(area)
 			break
 		}
-		units = cull(units)
-		// displayArea(fmt.Sprintf("=== round %d ===", i+1), area, units)
+		displayArea(fmt.Sprintf("=== round %d ===", i+1), area)
 	}
+	// displayArea("Finally:", area)
 
-	fmt.Println(numSpecies(units, "E"), "elves", numSpecies(units, "G"), "goblins,", sumHitPoints(units), "hit points")
+	fmt.Println(numSpecies(area, "E"), "elves", numSpecies(area, "G"), "goblins,", sumHitPoints(area), "hit points")
+
+	// fmt.Println(bfs(area,
+	// 	Point{y: 1, x: 1},
+	// 	Point{y: 5, x: 1}))
+	// fmt.Println(bfs(area,
+	// 	Point{y: 1, x: 1},
+	// 	Point{y: 5, x: 5}))
+	// fmt.Println(bfs(area,
+	// 	Point{y: 1, x: 1},
+	// 	Point{y: 3, x: 3}))
+	// fmt.Println(bfs(area,
+	// 	Point{y: 1, x: 1},
+	// 	Point{y: 3, x: 5}))
 
 	report(expected, result)
 }
@@ -564,23 +510,18 @@ func partTwo(in string, expected int) {
 
 	var result int
 
-	for elfPower := 18; elfPower < 20; elfPower++ {
-		area, units := loadInput(in, elfPower)
-		var elves = numSpecies(units, "E")
-		for i := 0; i < 90; i++ {
-			if round(area, units) {
-				result = i * sumHitPoints(units)
-				fmt.Println("power", elfPower, "break after", i, "rounds with", sumHitPoints(units), "hit points", numSpecies(units, "E"), "elves", numSpecies(units, "G"), "goblins", "result", result)
-				if numSpecies(units, "E") == elves {
-					goto exit
-				} else {
-					break
-				}
+	for elfPower := 29; elfPower < 30; elfPower++ {
+		area := loadInput(in, elfPower)
+		var elves = numSpecies(area, "E") // 10
+		for i := 0; i < 110; i++ {
+			if round(area) || numSpecies(area, "E") < elves {
+				fmt.Println("power", elfPower, "break after", i, "rounds with", sumHitPoints(area), "hit points", numSpecies(area, "E"), "elves", numSpecies(area, "G"), "goblins")
+				result = i * sumHitPoints(area)
+				break
 			}
 		}
 	}
 
-exit:
 	report(expected, result)
 }
 
@@ -596,7 +537,15 @@ func main() {
 
 	partOne(input, 237996)
 
-	partTwo(input, 69700) // power 19 break after 50 rounds with 1394 hit points 10 elves 5 goblins
+	// 245619 too high (2481 * 99)
+	// 243138 wrong (2481 * 98)
+	// 244020 wrong (2490 * 98)
+	// 244213 wrong (2371 * 103)
+	// 236808 wrong (2393 * 99) with NWES bfs (reading order?) 1188 short
+	// 229078 wrong (2437 * 94) with anti-reading order
+	// 237996
+
+	// fmt.Println("part 2", partTwo(input, 69700)) // rounds 50, elves left 10, attack power 4 .. 19
 }
 
 /*
