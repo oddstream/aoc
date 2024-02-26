@@ -295,12 +295,6 @@ func bfs(area Area, units Units, start, end Point) (int, Point) {
 			}
 			q = append(q, bfsp)
 		}
-		// sort.Slice(q, func(i, j int) bool {
-		// 	// if q[i].steps != q[j].steps {
-		// 	// 	return q[i].steps < q[j].steps
-		// 	// }
-		// 	return readingOrder(q[i].Point, q[j].Point)
-		// })
 	}
 	return -1, Point{}
 }
