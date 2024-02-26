@@ -122,7 +122,7 @@ func part2(in string, expected int) (result int) {
 	var q PriorityQueue = PriorityQueue{}
 	heap.Init(&q)
 
-	// for each bot, caluclate the manhatten distance to the origin {0,0,0},
+	// for each bot, calculate the manhatten distance to the origin {0,0,0},
 	// add furthest and nearest radius to make a radius,
 	// and add each to a priority queue
 	for _, bot := range loadNanobots(in) {
