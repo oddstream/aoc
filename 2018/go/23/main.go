@@ -122,6 +122,9 @@ func part2(in string, expected int) (result int) {
 	var q PriorityQueue = PriorityQueue{}
 	heap.Init(&q)
 
+	// had imagined the problem in 2d, with each nanobot being a circle painted
+	// on a plane; the place where the paint was thickest would be the result
+
 	// for each bot, calculate the manhatten distance to the origin {0,0,0},
 	// add furthest and nearest radius to make a radius,
 	// and add each to a priority queue

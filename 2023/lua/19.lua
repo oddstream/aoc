@@ -87,6 +87,8 @@ end
 ]]
 
 ---turn rules in a string to a list of parsed rules
+---what we COULD do is turn the rules into an on-the-fly
+---Lua function
 ---@param rules string like s>2770:qs,m<1801:hdj,R
 ---@return table[] each containing var, cmp, num, dst
 local function parseRules(rules)
@@ -209,10 +211,10 @@ local function partOne(filename, expected)
 
 --[[
 	test1
-x	1416	2662
-m	838		2090
-a	1716	3333
-s	537		3448
+x	1416	2662 (1246)
+m	838		2090 (1252)
+a	1716	3333 (1617)
+s	537		3448 (2911)
 
 	input
 x	138		3936
@@ -227,38 +229,82 @@ s	100		3971
 	return result
 end
 
----@param wf table[]
----@param var string one of x m a s
----@param minmax table {min=, max=}
----@return string dst
----@return table {min, max}
-local function ranger(wf, var, minmax)
-	-- a rule has .cmp .dst .num .var
-	for _, rule in ipairs(wf) do
-		if not rule.cmp then -- only rule.dst will be set
-			return rule.dst, minmax
-		elseif rule.var == var then
+---@param rule table
+local function printRule(rule)
+	print(rule.var, rule.cmp, rule.num, rule.dst)
+end
+
+---utility function to deep copy a table
+---@param obj table
+---@return table
+local function copy(obj)
+	if type(obj) ~= 'table' then return obj end
+	local res = {}
+	for k, v in pairs(obj) do res[copy(k)] = copy(v) end
+	return res
+end
+
+---@param workflows table[] of workflows, each has has .cmp .dst .num .var
+---@param current string node name; starts with "in", ends with "A" or "R"
+---@param varRanges table[] x m a s .left .right
+local function runWorkflowRanges(workflows, current, varRanges)
+	if current == 'A' then
+		local prod = 1
+		for _, v in pairs(varRanges) do
+			prod = prod * (v.right - v.left)
+		end
+		return prod
+	elseif current == 'R' then
+		return 0
+	end
+	local sum = 0
+	for _, rule in ipairs(workflows[current]) do
+		-- printRule(rule)
+		if not rule.cmp then
+			sum = sum + runWorkflowRanges(workflows, rule.dst, varRanges)
+			return sum
+		else
+			local v = varRanges[rule.var]
 			if rule.cmp == '<' then
-				minmax.max = rule.num - 1
-				print('\t', var, rule.cmp, rule.num, minmax.min, minmax.max)
-				return rule.dst, minmax
+				if v.right <= rule.num then
+					sum = sum + runWorkflowRanges(workflows, rule.dst, varRanges)
+					return sum
+				elseif v.left >= rule.num then
+				else
+					local childVarRanges = copy(varRanges)
+					childVarRanges[rule.var] = {left=v.left, right=rule.num}
+					sum = sum + runWorkflowRanges(workflows, rule.dst, childVarRanges)
+					if v.right == rule.num then
+						return sum
+					end
+					childVarRanges[rule.var] = {left=rule.num, right = v.right}
+					varRanges = childVarRanges
+				end
 			elseif rule.cmp == '>' then
-				minmax.min = rule.num + 1
-				print('\t', var, rule.cmp, rule.num, minmax.min, minmax.max)
-				return rule.dst, minmax
+				if v.left > rule.num then
+					sum = sum + runWorkflowRanges(workflows, rule.dst, varRanges)
+					return sum
+				elseif v.right <= rule.num + 1 then
+				else
+					local childVarRanges = copy(varRanges)
+					childVarRanges[rule.var] = {left=rule.num + 1, right=v.right}
+					sum = sum + runWorkflowRanges(workflows, rule.dst, childVarRanges)
+					if v.left == rule.num + 1 then
+						return sum
+					end
+					childVarRanges[rule.var] = {left=v.left, right=rule.num+1}
+					varRanges = childVarRanges
+				end
 			end
 		end
 	end
-	log.error('ranger error')
-	return "R", {min=1, max=4000}	-- shouldn't ever come here
+	return sum
 end
 
 ---@param filename string
 ---@param expected? integer
 ---@return integer
 local function partTwo(filename, expected)
-	local result = 0
-
 	local workflows = {}
 
 	for line in io.lines(filename) do
@@ -275,34 +321,34 @@ local function partTwo(filename, expected)
 		end
 	end
 
-	-- https://old.reddit.com/r/adventofcode/comments/18lwcw2/2023_day_19_an_equivalent_part_2_example_spoilers/
-
-	result = 1
-	for _, var in pairs{'x', 'm', 'a', 's'} do
-		local minmax = {min=1, max=4000}
-		local dst = 'in'
-		repeat
-			dst, minmax = ranger(workflows[dst], var, minmax)
-		until dst == 'A' or dst == 'R'
-		if dst == 'A' then
-			print(var, 'accepted', minmax.min, minmax.max)
-			result = result * (minmax.max - minmax.min)
-		else
-			print(var, 'not accepted', minmax.min, minmax.max)
-		end
-	end
-
+	local varRanges = {
+		x = {left=1, right=4001},
+		m = {left=1, right=4001},
+		a = {left=1, right=4001},
+		s = {left=1, right=4001},
+	}
+	local result = runWorkflowRanges(workflows, "in", varRanges)
 	if expected and result ~= expected then
-		log.error('expected %d, got %d\n', expected, result)
+		log.error('expected %d, got %d (%d)\n', expected, result, expected - result)
 	end
 	return result
 end
 
 log.report('%s\n', _VERSION)
-log.report('part one test %d\n', partOne('19-test.txt', 19114))
+-- log.report('part one test %d\n', partOne('19-test.txt', 19114))
 log.report('part one      %d\n', partOne('19-input.txt', 449531))
 -- log.report('part two test %d\n', partTwo('19-test.txt', 167409079868000))
--- log.report('part two      %d\n', partTwo('19-input.txt', 122756210763577))
+log.report('part two      %d\n', partTwo('19-input.txt', 122756210763577))
 
--- 4000*4000*4000*4000 = 256000000000000, 14 digits, and yet correct input result is 15 digits
--- grok https://advent-of-code.xavd.id/writeups/2023/day/19/
+-- 4000*4000*4000*4000 = 256000000000000, 15 digits
+
+--[[
+$ time luajit 19.lua
+Lua 5.1
+part one      449531
+part two      122756210763577
+
+real	0m0.043s
+user	0m0.031s
+sys	0m0.004s
+]]
