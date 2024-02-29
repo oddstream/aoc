@@ -217,11 +217,11 @@ func main() {
 
 	part1(input, 64, 3642)
 
-	// part2(test1, 6, 16)
-	// part2(test1, 10, 50)
-	// part2(test1, 50, 1594)
-	// part2(test1, 100, 6536)
-	// part2(test1, 500, 167004) // 29s
+	part2(test1, 6, 16)
+	part2(test1, 10, 50)
+	part2(test1, 50, 1594)
+	part2(test1, 100, 6536)
+	part2(test1, 500, 167004) // 29s
 	// part2(test1, 1000, 668697)	// 2m28s
 	// part2(test1, 5000, 16733044)	// 6h7m
 
