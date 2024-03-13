@@ -14,6 +14,6 @@ for line in io.lines('02-input.txt') do
 	totalRibbon = totalRibbon + ribbon + bow
 end
 
+log.report('%s\n', _VERSION)
 log.report('paper %d\n', totalPaper) -- 1606483
 log.report('ribbon %d\n', totalRibbon) -- 3842356
-

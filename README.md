@@ -61,12 +61,11 @@ print(bitoper(6,3,AND))  --> 2
 - AoC likes a language that is compact without being unreadable (so, SED, and certainly no code golf), not long winded (so, not Fortran, Java or C and it's modern ilk), that has good out-of-the-box support for string manipulation, and can occasionally do MD5 hashes and bit-twiddling. It doesn't have to be fast. This [this blog entry](https://www.benkraft.org/2017/12/26/advent-of-code/) for a discussion of several languages (TLDR: he didn't like Perl).
 - You can write very readable vanilla JavaScript/ECMAScript/TypeScript and use the [Deno runtime](https://deno.com/).
 
-## Notable blogs
+## Notable resources
 
-- https://www.ericburden.work/blog/
-- [Go commentary 2019](https://dhconnelly.com/advent-of-code-2019-commentary.html)
+[The Competitive Programming Handbook](https://cses.fi/book/book.pdf) [with roadmap](https://www.geeksforgeeks.org/competitive-programming-cp-handbook-with-complete-roadmap/)
 
-## Notable repos/commentaries
+## Notable repos/commentaries/blogs
 - [Michael Fogleman](https://www.michaelfogleman.com/aoc18/#17)
 - [Go](https://github.com/alexchao26/advent-of-code-go)
 - [Go 2023, 2022, 2021, 2020, 2019](https://github.com/lynerist?tab=repositories)
@@ -79,6 +78,9 @@ print(bitoper(6,3,AND))  --> 2
 - [AWK](https://github.com/phillbush/aoc)
 - [Lua 2015, 2019, 2023](https://github.com/DeybisMelendez/AdventOfCode/tree/master)
 - [Clear and *BLAZINGLY FAST* solutions in JS](https://github.com/JoanaBLate/advent-of-code-js/tree/main)
+- https://www.ericburden.work/blog/
+- [Go commentary 2019](https://dhconnelly.com/advent-of-code-2019-commentary.html)
+
 
 ## Notable puzzles
 
@@ -106,37 +108,3 @@ print(bitoper(6,3,AND))  --> 2
 | 2022 | 16   | "This looks alright" I remember thinking, "just an adapted A-star". Start tapping, but soon get tied up in knots because of the two constraints (max flow and 30 minutes) and the way the flow rate accumulates as the paths are followed. A quick scan through the solutions subreddit keeps hinting "Floyd–Warshall algorithm", which is new to me, and looks like another of those black magic algorithms. So, the solution is to use this to make another input from the original, and run a depth first search on that. Part two is just to run another path finder after the first, with tighter constraints (less time, and no duplicated valves). |
 | 2023 | 19   | Just not grokking part two at the moment ...                 |
 | 2023 | 21   | Part one coded up in 15 minutes, got right answer first time. Second part? Well, a brute force extension of part one would probably never finish before the electricity ran out (6 hours to do 5000 steps, gets exponentially slower), so spending time exploring patterns in the input and partial outputs. Generating lots of numbers that don't seem to fit together. |
-
-## Comments from u/vipul0092
-
-Some highlights of the journey:
-
-- 2019 is by far my favourite year, because of IntCode
-- 2018 is definitely the most difficult one
-- 2017 is definitely the easiest one
-
-And finally shoutout to the nastiest puzzles that bit me for a long time (But every one of them taught me something):
-
-2015 - Day 19 (CFG and CYK... what?)
-
-2016 - Day 11 (Solving by hand is easier...DFS + State pruning)
-
-2018 - Day 15 (Still don't know if it'll pass all the inputs)
-
-2018 - Day 17 (Took me an year to solve, in multiple attempts )
-
-2018 - Day 23 (Octrees or something, I dunno)
-
-2019 - Day 18 (Dynamic programming at its very best, seriously tho, if you think you know DP, try this problem)
-
-2019 - Day 22 (Become a mathematician)
-
-2020 - Day 20 (Low level OpenCV implementation??)
-
-2021 - Day 22 (Nothing to say about this one, was totally blank as to how to approach here)
-
-2021 - Day 23 (Solving by hand is easier, for a coded solution tho...)
-
-2022 - Day 19 (DFS + State pruning...ugh)
-
-2023 - Day 21 (Keep counting until the world ends?)

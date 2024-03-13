@@ -74,5 +74,6 @@ local function partTwo()
 	log.report('part two %d\n', count)
 end
 
+log.report('%s\n', _VERSION)
 partOne() -- 2081
 partTwo() -- 2341
