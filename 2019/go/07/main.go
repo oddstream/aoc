@@ -193,14 +193,25 @@ func run(program []int, pc int, input []int) (int, int) {
 	return -1, -1
 }
 
+func load() []int {
+	var tokens []string = strings.Split(strings.Trim(input, "\n"), ",")
+	var program []int
+	for _, tok := range tokens {
+		program = append(program, atoi(tok))
+	}
+	return program
+}
+
+func clone(master []int) []int {
+	var program []int = make([]int, len(master))
+	copy(program, master)
+	return program
+}
+
 func part1() {
 	defer duration(time.Now(), "part 1")
 
-	var tokens []string = strings.Split(strings.Trim(input, "\n"), ",")
-	var masterProgram []int
-	for _, tok := range tokens {
-		masterProgram = append(masterProgram, atoi(tok))
-	}
+	var master = load()
 
 	// var seq []int = []int{4, 3, 2, 1, 0}	// test1, 43210
 	// var seq []int = []int{0, 1, 2, 3, 4} // test2, 54321
@@ -210,8 +221,6 @@ func part1() {
 	for _, perm := range perms {
 		var output int
 		for _, phase := range perm {
-			var program []int = make([]int, len(masterProgram))
-			copy(program, masterProgram)
 			// "When a copy of the program starts running on an amplifier,
 			// it will first use an input instruction to ask the amplifier
 			// for its current phase setting (an integer from 0 to 4).
@@ -221,13 +230,13 @@ func part1() {
 			// to get the amplifier's input signal,"
 			//
 			// "The first amplifier's input value is 0"
-			output, _ = run(program, 0, []int{phase, output})
+			output, _ = run(clone(master), 0, []int{phase, output})
 			if output == -1 {
 				fmt.Print("error break")
 				break
 			}
-			result = max(result, output)
 		}
+		result = max(result, output)
 	}
 	fmt.Println("part 1", result) // 46248
 }
@@ -235,15 +244,7 @@ func part1() {
 func part2() {
 	defer duration(time.Now(), "part 2")
 
-	var tokens []string = strings.Split(strings.Trim(input, "\n"), ",")
-	var masterProgram []int
-	for _, tok := range tokens {
-		masterProgram = append(masterProgram, atoi(tok))
-	}
-
-	// perms = permutations([]int{5, 6, 7, 8, 9})
-	// var phases []int = []int{9, 8, 7, 6, 5} // test4, 139629729, loop 4
-	// var phases []int = []int{9, 7, 8, 5, 6} // test5, 18216
+	master := load()
 
 	// To start the process, a 0 signal is sent to amplifier A's input exactly once.
 
@@ -255,8 +256,7 @@ func part2() {
 	for _, phases := range permutations([]int{5, 6, 7, 8, 9}) {
 		var amplifiers [5][]int
 		for i := 0; i < 5; i++ {
-			amplifiers[i] = make([]int, len(masterProgram))
-			copy(amplifiers[i], masterProgram)
+			amplifiers[i] = clone(master)
 		}
 		var pcs [5]int
 		var output, lastOutput int
