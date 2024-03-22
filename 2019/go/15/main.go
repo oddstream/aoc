@@ -1,142 +1,130 @@
-// https://adventofcode.com/2019/day/15
+// https://github.com/mnml/aoc/blob/main/2019/15/2.go
 package main
 
 import (
-	_ "embed"
 	"fmt"
+	"image"
+	"io/ioutil"
 	"strconv"
 	"strings"
-	"time"
 )
 
-//go:embed input.txt
-var input string
+func main() {
+	input, _ := ioutil.ReadFile("input.txt")
+	split := strings.Split(strings.TrimSpace(string(input)), ",")
+	mem := map[int]int{}
 
-const (
-	NORTH int = 1
-	SOUTH int = 2
-	WEST  int = 3
-	EAST  int = 4
-
-	WALL   int = 0
-	MOVED  int = 1
-	OXYGEN int = 2
-)
-
-type Point struct {
-	x, y int
-}
-
-func (p Point) add(q Point) Point {
-	return Point{x: p.x + q.x, y: p.y + q.y}
-}
-
-var directions map[int]Point = map[int]Point{
-	NORTH: {x: 0, y: -1},
-	SOUTH: {x: 0, y: 1},
-	WEST:  {x: -1, y: 0},
-	EAST:  {x: 1, y: 0},
-}
-
-func duration(invocation time.Time, name string) {
-	fmt.Println(name, time.Since(invocation))
-}
-
-// or we could use K&R p61
-func atoi(s string) int {
-	if n, err := strconv.Atoi(s); err == nil {
-		return n
-	} else {
-		fmt.Println(err)
-	}
-	return 0
-}
-
-func play1(program []int) int {
-
-	type BfsPoint struct {
-		Point
-		steps int
-		parent *BfsPoint
+	for i, s := range split {
+		mem[i], _ = strconv.Atoi(s)
 	}
 
-	var p BfsPoint = BfsPoint{{Point{x: 0, y: 0}} // one assumes start position is 0,0
-	var np BfsPoint
-	var section map[Point]rune = make(map[Point]rune)
-	section[p.Point] = '.'
+	in, out := make(chan int), make(chan int)
+	go run(mem, in, out)
+	delta := map[int]image.Point{1: {0, -1}, 2: {0, 1}, 3: {-1, 0}, 4: {1, 0}}
+	maze := map[image.Point]int{}
+	pos := image.Point{0, 0}
+	var back []int
+	var oxy image.Point
 
-	in := func() int {
-		return 0
-	}
-	out := func(val int) {
-		switch val {
-		case WALL:
-			section[p.Point] = '#'
-		case MOVED:
-			p = np
-			section[p.Point] = '.'
-		case OXYGEN:
-			section[p.Point] = 'O'
-			fmt.Println("oxygen at", p)
+explore:
+	for {
+		for dir, dp := range delta {
+			next := pos.Add(dp)
+			if _, ok := maze[next]; !ok {
+				in <- dir
+				maze[next] = <-out
+				if maze[next] > 0 {
+					pos = next
+					back = append(back, dir-1^1+1)
+				}
+				if maze[next] == 2 {
+					oxy = next
+					fmt.Println(len(back))
+				}
+				continue explore
+			}
 		}
+		if len(back) < 1 {
+			break
+		}
+		in <- back[len(back)-1]
+		<-out
+		pos = pos.Add(delta[back[len(back)-1]])
+		back = back[:len(back)-1]
 	}
 
-	var q []BfsPoint = []BfsPoint{p}
-	for len(q) > 0 {
-		p, q = q[0], q[1:]
-		for d, dir := range directions {
-			np = BfsPoint{Point:p.Point.add(dir)}
-			if _, ok := section[np.Point]; !ok {
-				in(d)
+	disc := map[image.Point]int{oxy: 0}
+	queue := []image.Point{oxy}
+	var point image.Point
+
+	for len(queue) > 0 {
+		point = queue[0]
+		queue = queue[1:]
+		for _, d := range delta {
+			if _, ok := disc[point.Add(d)]; !ok && maze[point.Add(d)] > 0 {
+				disc[point.Add(d)] = disc[point] + 1
+				queue = append(queue, point.Add(d))
 			}
 		}
 	}
 
-	return 0
+	fmt.Println(disc[point])
 }
 
-func partOne(in string, expected int) (result int) {
-	defer duration(time.Now(), "part 1")
+func run(mem map[int]int, in <-chan int, out chan<- int) {
+	ip, rb := 0, 0
 
-	var tokens []string = strings.Split(strings.Trim(input, "\n"), ",")
-	var masterProgram []int
-	for _, tok := range tokens {
-		masterProgram = append(masterProgram, atoi(tok))
-	}
-	// The computer's available memory should be much larger than the initial program.
-	// Memory beyond the initial program starts with the value 0
-	// and can be read or written like any other memory.
-	var program []int = make([]int, len(masterProgram)+1000)
-	copy(program, masterProgram)
-
-	result = play1(program)
-
-	if expected != -1 {
-		if result != expected {
-			fmt.Println("ERROR: got", result, "expected", expected)
-		} else {
-			fmt.Println("RIGHT ANSWER:", result)
+	for {
+		ins := fmt.Sprintf("%05d", mem[ip])
+		op, _ := strconv.Atoi(ins[3:])
+		par := func(i int) int {
+			switch ins[3-i] {
+			case '1':
+				return ip + i
+			case '2':
+				return rb + mem[ip+i]
+			default:
+				return mem[ip+i]
+			}
 		}
+
+		switch op {
+		case 1:
+			mem[par(3)] = mem[par(1)] + mem[par(2)]
+		case 2:
+			mem[par(3)] = mem[par(1)] * mem[par(2)]
+		case 3:
+			mem[par(1)] = <-in
+		case 4:
+			out <- mem[par(1)]
+		case 5:
+			if mem[par(1)] != 0 {
+				ip = mem[par(2)]
+				continue
+			}
+		case 6:
+			if mem[par(1)] == 0 {
+				ip = mem[par(2)]
+				continue
+			}
+		case 7:
+			if mem[par(1)] < mem[par(2)] {
+				mem[par(3)] = 1
+			} else {
+				mem[par(3)] = 0
+			}
+		case 8:
+			if mem[par(1)] == mem[par(2)] {
+				mem[par(3)] = 1
+			} else {
+				mem[par(3)] = 0
+			}
+		case 9:
+			rb += mem[par(1)]
+		case 99:
+			return
+		}
+
+		ip += []int{1, 4, 4, 2, 2, 3, 3, 4, 4, 2}[op]
 	}
-	return result
 }
-
-func main() {
-	defer duration(time.Now(), "main")
-
-	partOne(input, 0)
-	//	partTwo()
-
-	// {
-	// 	var memStats runtime.MemStats
-	// 	runtime.ReadMemStats(&memStats)
-	// 	fmt.Printf("Heap memory (in bytes): %d\n", memStats.HeapAlloc)
-	// 	fmt.Printf("Number of garbage collections: %d\n", memStats.NumGC)
-	// }
-}
-
-// https://github.com/xorkevin/advent2019/blob/master/day15/main.go
-
-/*
-$ go run main.go
-*/

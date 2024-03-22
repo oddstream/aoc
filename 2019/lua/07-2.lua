@@ -55,9 +55,35 @@ local function permutations(arr)
 end
 
 local function run(amp, input)
-	while true do
-		local header = string.format('%05d', amp.data[amp.ip])
+
+	---return the next data item, advance instruction pointer
+	---@return integer
+	local function read()
+		local v = amp.data[amp.ip]	-- the instruction pointer is already 1-based
 		amp.ip = amp.ip + 1
+		return v
+	end
+
+	local function store(loc, val)
+		amp.data[loc+1] = val	-- +1 because Lua arrays are 1-based
+	end
+
+	---@param mode string
+	---@param parameter integer
+	---@return integer
+	local function getValue(mode, parameter)
+		if mode == '0' then
+			return amp.data[parameter + 1]
+		elseif mode == '1' then
+			return parameter
+		else
+			log.error('unknown mode %s\n', mode)
+			return 0
+		end
+	end
+
+	while true do
+		local header = string.format('%05d', read())
 
 		local opcode = header:sub(4,5)
 
@@ -68,26 +94,16 @@ local function run(amp, input)
 
 		local modeA = header:sub(3,3)
 		local modeB = header:sub(2,2)
-		-- local modeC = header:sub(1,1)
 
-		local parameterA = amp.data[amp.ip]
-		amp.ip = amp.ip + 1
-
-		local valueA
-		if modeA == '0' then
-			valueA = amp.data[parameterA + 1]
-		elseif modeA == '1' then
-			valueA = parameterA
-		else
-			log.error('unknown modeA %s\n', modeA)
-		end
+		local parameterA = read()
+		local valueA = getValue(modeA, parameterA)
 
 		if opcode == '03' then
 			if amp.starting then
 				amp.starting = false
-				amp.data[parameterA + 1] = amp.phase
+				store(parameterA, amp.phase)
 			else
-				amp.data[parameterA + 1] = input
+				store(parameterA, input)
 			end
 			goto continue
 		end
@@ -97,17 +113,8 @@ local function run(amp, input)
 			break
 		end
 
-		local parameterB = amp.data[amp.ip]
-		amp.ip = amp.ip + 1
-
-		local valueB
-		if modeB == '0' then
-			valueB = amp.data[parameterB + 1]
-		elseif modeB == '1' then
-			valueB = parameterB
-		else
-			log.error('unknown modeB %s\n', modeB)
-		end
+		local parameterB = read()
+		local valueB = getValue(modeB, parameterB)
 
 		if opcode == '05' then
 			if valueA ~= 0 then
@@ -122,24 +129,24 @@ local function run(amp, input)
 			goto continue
 		end
 
-		local parameterC = amp.data[amp.ip]
-		amp.ip = amp.ip + 1
+		local parameterC = read()
+		-- never get the value at parameterC, so don't need modeC
 
 		if opcode == '01' then
-			amp.data[parameterC + 1] = valueA + valueB
+			store(parameterC, valueA + valueB)
 		elseif opcode == '02' then
-			amp.data[parameterC + 1] = valueA * valueB
+			store(parameterC, valueA * valueB)
 		elseif opcode == '07' then
 			if valueA < valueB then
-				amp.data[parameterC + 1] = 1
+				store(parameterC, 1)
 			else
-				amp.data[parameterC + 1] = 0
+				store(parameterC, 0)
 			end
 		elseif opcode == '08' then
 			if valueA == valueB then
-				amp.data[parameterC + 1] = 1
+				store(parameterC, 1)
 			else
-				amp.data[parameterC + 1] = 0
+				store(parameterC, 0)
 			end
 		end
 

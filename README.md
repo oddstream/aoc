@@ -28,7 +28,7 @@ Use one logging/trace system, for example in Go use `log.Println`, in Lua use a 
 4. Avoid regular expressions, especially in Go. Like someone said: "if you solve a problem with regular expressions, you now have two problems". `fmt.Sscanf()` , `strings.Split()` and `strings.Fields()` can go a long way.
 5. Seeing the word 'infinite' in the description means you should be using maps, not a fixed size grid.
 6. A lot of stumbles and bad starts happen because I don't fully understand the puzzle descriptions, or think I can see ambiguities. When this happens, it's often helpful to work out a solution by hand in a text editor. At first, I laughed when I saw someone doing AoC in vim, but now I understand that completely.
-7. Visualisation can be key; in a lot of puzzles being able to see the data/solution as it progresses can be very helpful when tracking down unexpected behaviour. 2018 day 17 (the one where water cascades down from a spring) is a key example. 
+7. Visualisation can be key; in a lot of puzzles being able to see the data/solution as it progresses can be very helpful when tracking down unexpected behaviour. 2018 day 17 (the one where water cascades down from a spring) is a key example.
 
 ## Observations on language
 
@@ -80,6 +80,7 @@ print(bitoper(6,3,AND))  --> 2
 - [Clear and *BLAZINGLY FAST* solutions in JS](https://github.com/JoanaBLate/advent-of-code-js/tree/main)
 - https://www.ericburden.work/blog/
 - [Go commentary 2019](https://dhconnelly.com/advent-of-code-2019-commentary.html)
+- [Awesome bit of Go for 2019 day 15](*https://github.com/mnml/aoc/blob/main/2019/15/2.go*)
 
 
 ## Notable puzzles
@@ -93,8 +94,11 @@ print(bitoper(6,3,AND))  --> 2
 | 2018 | 20   | Seemed obvious from the start that you should use a stack, push when finding a ( [remember this place], peek when finding a \| [what if] and pop when finding a ) [okay, back to where we were]. Only afterwards I [read](https://www.reddit.com/r/adventofcode/comments/a7w4dj/2018_day_20_why_does_this_work/) that this somehow may not being doing it as per the instructions (aka not 'properly'). Eh? When I got over the idea suggested by the description that you should be making two steps for every move, instead of simply 'passing through a door', then it was straightforward. |
 | 2018 | 22   | Part two - Dijkstra to find the shortest path through a three-dimensional graph - I know what my 'official' shortest path result should be, but I can find a valid shorter path with my input. This has happened to other people, according to the subreddits and internet chatter. I've spent best part of a day trying to create a sub-optimal version of my solution that creates the 'official' result, without success - why should I have to do this? Have submitted the 'official' result to get the star, and wrestling with the moral dilemma. |
 | 2019 | 7    | Part two - instructions unclear - turned out, instruction pointer needed to be saved between invocations of each amplifier, not just the []int instructions/memory. |
+| 2019 | 9    | Rewrote intcode interpreter; original Go version produced correct output, but troubled that the puzzle instructions and the code don't seem to match. Second, Lua, version fell into the ['203' trap](https://www.reddit.com/r/adventofcode/comments/e8aw9j/2019_day_9_part_1_how_to_fix_203_error/), which took a while to resolve. I now have two versions of the intcode interpreter, neither of which should work according to my reading of the puzzle instructions.  This is discouraging; other folks seem to like the intcode puzzles, however I greatly fear them. |
 | 2019 | 10   | Proud of part one solution; did it all in integers without calculating any angles or creating an actual grid. Solution uses a map to hold the asteroid positions, and calculates if any asteroids lie between two other asteroids using an algorithm copied from stack overflow. It's a bit O(n3) as it does three nested loops over the asteroid map, and takes nearly a second on my machine, so no prizes for efficiency.  Part two does calculate angles, but only when sorting a slice of asteroids visible from the laser point. |
 | 2019 | 14   | Could see the data structures and general approach as soon as I saw the input, but there was something in the middle that just wouldn't gel. Eventually borrowed heavily from a couple of other solutions. |
+| 2019 | 15   | Got tied in knots by the philosophical problem - does the intcode call the repair droid code, or the other way around? Got it running after the 3-4th attempt (the droid calls the intcode every step). |
+| 2019 | 16   | Instructions not fully grokked, eventually muddled my way to the solutions. I may have reached my personal brain-limit. |
 | 2020 | 7    | Only half-grokked this one; loaded the input into a map of maps, which was fine, but maybe should have used a map of trees. |
 | 2020 | 16   | Like 2018/6; great puzzle, whittling down occurrence lists.  |
 | 2020 | 18   | For part one, used a simple infix-to-postfix converter (that I first borrowed from Donald Alcock's "Illustrating Pascal" back in 1989) and a postfix evaluator. Delighted when I found that I only had to change one character in the precedence map to solve part two. |
