@@ -1,4 +1,4 @@
--- https://adventofcode.com/2019/day/17
+-- https://adventofcode.com/2019/day/19
 
 local log = require 'log'
 
@@ -9,7 +9,7 @@ local POSITION, IMMEDIATE, RELATIVE = '0', '1', '2'
 local function load(input)
 
 	if input == nil then
-		local f = assert(io.open('17-input.txt', 'r'))
+		local f = assert(io.open('19-input.txt', 'r'))
 		input = f:read('*all')
 		f:close()
 	end
@@ -19,13 +19,30 @@ local function load(input)
 	for num in input:gmatch('[0-9-]+') do
 		prog[#prog+1] = tonumber(num)
 	end
+	for _=1,100 do
+		prog[#prog+1] = 0
+	end
 
 	return prog
 end
 
-local function robot(data, program)
-	local ip, relbase, ii = 1, 0, 1
+local function shallowcopy(orig)
+	local orig_type = type(orig)
+	local copy
+	if orig_type == 'table' then
+		copy = {}
+		for orig_key, orig_value in pairs(orig) do
+			copy[orig_key] = orig_value
+		end
+	else -- number, string, boolean, etc
+		copy = orig
+	end
+	return copy
+end
 
+local function intcode(data, coords)
+	local ip, relbase, coordsUsed = 1, 0, 0
+	---return the next data item, advance instruction pointer
 	---@return integer
 	local function read()
 		local v = data[ip]	-- the instruction pointer is already 1-based
@@ -33,8 +50,6 @@ local function robot(data, program)
 		return v
 	end
 
-	---@param loc integer
-	---@param val integer
 	local function store(loc, val)
 		data[loc+1] = val	-- +1 because Lua arrays are 1-based
 	end
@@ -49,7 +64,7 @@ local function robot(data, program)
 		elseif mode == RELATIVE then
 			return relbase + parameter
 		else
-			log.error('unexpected mode in getAddress %d\n', mode)
+			log.error('unexpected mode in getAddress %s\n', mode)
 			return 0
 		end
 	end
@@ -86,26 +101,21 @@ local function robot(data, program)
 		local valueA = getValue(modeA, parameterA)
 
 		if opcode == '03' then
-			-- io.write('INPUT: ')
-			-- local str = io.read('*l')
-			-- if str == '' then str = '\n' else str = string.upper(str) end
-			-- store(getAddress(modeA, parameterA), string.byte(str:sub(1,1)))
-			store(getAddress(modeA, parameterA), string.byte(program:sub(ii,ii)))
-			ii = ii + 1
+			coordsUsed = coordsUsed + 1
+			if coordsUsed > 2 then
+				print('OOPS')
+			end
+			store(getAddress(modeA, parameterA), coords[coordsUsed])
+			-- print('INPUT')
 			goto continue
 		end
 
 		if opcode == '04' then
-			-- print('OUTPUT')
-			if valueA ~= nil then
-				if valueA > 255 then
-					log.report('Part Two %d\n', valueA)	-- 785733
-				elseif valueA ~= 0 then
-					io.write(string.char(valueA))
-				end
-			end
-			-- if valueA == -1 then print('OUTPUT', valueA) end
-			goto continue
+			-- print('OUTPUT', valueA)
+			return valueA
+			-- io.write(string.char(valueA))
+			-- return bot
+			-- goto continue
 		end
 
 		if opcode == '09' then
@@ -156,44 +166,91 @@ local function robot(data, program)
 
 ::continue::
 	end
+	return -1
 end
 
+local data = load()
+
+local function partOne()
+	local SIZE = 50
+
+	local result = 0
+
+	for y=1,SIZE do
+		for x=1,SIZE do
+			local code = intcode(shallowcopy(data), {x-1, y-1})
+			if code == 1 then
+				result = result + 1
+			end
+		end
+	end
+
+	return result
+end
+
+log.report('Part One %d\n', partOne())	-- 169
+
+local function partTwo()
+	local BOXSIZE = 100
+	local SIZEX = BOXSIZE*10
+	local SIZEY = BOXSIZE*15
+	local grid = {}
+
+	for y=1,SIZEY do
+		local row = {}
+		for x=1,SIZEX do
+			local code = intcode(shallowcopy(data), {x-1, y-1})
+			if code == 0 then
+				row[#row+1] = '.'
+			elseif code == 1 then
+				row[#row+1] = '#'
+			else
+				row[#row+1] = '?'
+			end
+		end
+		grid[#grid+1] = row
+	end
+
 --[[
-path plotted by hand by referring to 17-grid.txt
-
-R,4,L,12,				Ln 15 Col 45
-L,8,R,4,				Ln 11 Col 37
-L,8,					Ln 11 Col 29
-R,10,R,10,R,6,			Ln  7 Col 39
-R,4,L,12				Ln 19 Col 35
-L,8,R,4,R,4,			Ln 23 Col 39
-R,10,L,12				Ln 13 Col 27
-R,4,L,12,				Ln  9 Col 15
-L,8,R,4,L,8,			Ln 25 Col 11
-R,10,R,10,				Ln 15 Col  1
-R,6,R,4,L,12			Ln 19 Col 19
-L,8,R,4,R,4,R,10		Ln 15 Col 13
-L,12,L,8,R,10			Ln 37 Col 21
-R,10,R,6,R,4			Ln 31 Col 15
-R,10,L,12				Ln 41 Col 27
-
-R,4,L,12,L,8,R,4,L,8,R,10,R,10,R,6,R,4,L,12,L,8,R,4,R,4,R,10,L,12,R,4,L,12,L,8,R,4,L,8,R,10,R,10,R,6,R,4,L,12,L,8,R,4,R,4,R,10,L,12,L,8,R,10,R,10,R,6,R,4,R,10,L,12
-
-A,B,A,C,A,B,A,C,B,C
-
-A = R,4,L,12,L,8,R,4
-B = L,8,R,10,R,10,R,6
-C = R,4,R,10,L,12
+	for y=1,SIZEY do
+		for x=1,SIZEX do
+			local ch = grid[y][x]
+			io.write(ch)
+		end
+		io.write('\n')
+	end
 ]]
+	for x=BOXSIZE,SIZEX-BOXSIZE do
+		for y=BOXSIZE,SIZEY-BOXSIZE do
+			local ch = grid[y][x]	-- top left
+			if ch == '#' then
+				ch = grid[y][x+BOXSIZE-1]	-- top right
+				if ch == '#' then
+					ch = grid[y+BOXSIZE-1][x] -- bottom left
+					if ch == '#' then
+						ch = grid[y+BOXSIZE-1][x+BOXSIZE-1] -- bottom right
+						if ch == '#' then
+							log.report('x=%d, y=%d\n', x-1, y-1)
+							return ((x-1) * 10000) + (y-1)
+						end
+					end
+				end
+			end
+		end
+	end
 
-local mem = load()
-mem[1] = 2
-local prog = {
-	'A,B,A,C,A,B,A,C,B,C',
-	'R,4,L,12,L,8,R,4',
-	'L,8,R,10,R,10,R,6',
-	'R,4,R,10,L,12',
-	'y',
-	'',
-}
-robot(mem, table.concat(prog, '\n'))
+	return -1
+end
+
+log.report('Part Two %d\n', partTwo()) -- 700,1134
+
+--[[
+$ time luajit 19.lua
+Part One 169
+x=700, y=1134
+Part Two 7001134
+
+real	0m36.373s
+user	0m36.082s
+sys	0m0.288s
+]]

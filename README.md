@@ -80,7 +80,8 @@ print(bitoper(6,3,AND))  --> 2
 - [Clear and *BLAZINGLY FAST* solutions in JS](https://github.com/JoanaBLate/advent-of-code-js/tree/main)
 - https://www.ericburden.work/blog/
 - [Go commentary 2019](https://dhconnelly.com/advent-of-code-2019-commentary.html)
-- [Awesome bit of Go for 2019 day 15](*https://github.com/mnml/aoc/blob/main/2019/15/2.go*)
+- [Awesome bit of Go for 2019 day 15](https://github.com/mnml/aoc/blob/main/2019/15/2.go), some very succinct and clever code in this [https://github.com/mnml/aoc](repo) by mnml (who is this masked person?)
+- [Nice bit of Go for 2019 day 19](https://github.com/stevotvr/adventofcode2019/blob/master/day19/day19.go)
 
 
 ## Notable puzzles
@@ -99,6 +100,8 @@ print(bitoper(6,3,AND))  --> 2
 | 2019 | 14   | Could see the data structures and general approach as soon as I saw the input, but there was something in the middle that just wouldn't gel. Eventually borrowed heavily from a couple of other solutions. |
 | 2019 | 15   | Got tied in knots by the philosophical problem - does the intcode call the repair droid code, or the other way around? Got it running after the 3-4th attempt (the droid calls the intcode every step). |
 | 2019 | 16   | Instructions not fully grokked, eventually muddled my way to the solutions. I may have reached my personal brain-limit. |
+| 2019 | 18   | Part one - tried several obvious and simple BFS/permutation approaches to this, but none of them would yield a decent run time (26! is a very big number). Eventually stumbled on a simple approach that works like magic; I understand how it find all the keys, I'm just not sure why it finds the shortest path. Part two takes an hour to run, and crashes luajit, so there's some work to do here still. |
+| 2019 | 19   | Simpler than other recent puzzles, and back to that pesky intcode. I really should make a more elegant incode interpreter. Eschewing any tricky math, I treated myself to some simple brute-force solutions. |
 | 2020 | 7    | Only half-grokked this one; loaded the input into a map of maps, which was fine, but maybe should have used a map of trees. |
 | 2020 | 16   | Like 2018/6; great puzzle, whittling down occurrence lists.  |
 | 2020 | 18   | For part one, used a simple infix-to-postfix converter (that I first borrowed from Donald Alcock's "Illustrating Pascal" back in 1989) and a postfix evaluator. Delighted when I found that I only had to change one character in the precedence map to solve part two. |
