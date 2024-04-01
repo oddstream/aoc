@@ -2,8 +2,6 @@
 
 local log = require 'log'
 
-local POSITION, IMMEDIATE, RELATIVE = '0', '1', '2'
-
 ---@param input string?
 ---@return integer[]
 local function load(input)
@@ -19,7 +17,7 @@ local function load(input)
 	for num in input:gmatch('[0-9-]+') do
 		prog[#prog+1] = tonumber(num)
 	end
-	for _=1,100 do
+	for _=1,50 do
 		prog[#prog+1] = 0
 	end
 
@@ -40,8 +38,9 @@ local function shallowcopy(orig)
 	return copy
 end
 
-local function intcode(data, coords)
-	local ip, relbase, coordsUsed = 1, 0, 0
+local function intcode(data, inputs)
+	local POSITION, IMMEDIATE, RELATIVE = '0', '1', '2'
+	local ip, relbase = 1, 0
 	---return the next data item, advance instruction pointer
 	---@return integer
 	local function read()
@@ -101,12 +100,8 @@ local function intcode(data, coords)
 		local valueA = getValue(modeA, parameterA)
 
 		if opcode == '03' then
-			coordsUsed = coordsUsed + 1
-			if coordsUsed > 2 then
-				print('OOPS')
-			end
-			store(getAddress(modeA, parameterA), coords[coordsUsed])
 			-- print('INPUT')
+			store(getAddress(modeA, parameterA), table.remove(inputs, 1))
 			goto continue
 		end
 
@@ -114,7 +109,7 @@ local function intcode(data, coords)
 			-- print('OUTPUT', valueA)
 			return valueA
 			-- io.write(string.char(valueA))
-			-- return bot
+			-- return data
 			-- goto continue
 		end
 
@@ -196,6 +191,7 @@ local function partTwo()
 	local SIZEY = BOXSIZE*15
 	local grid = {}
 
+	-- this takes virtually all the time ...
 	for y=1,SIZEY do
 		local row = {}
 		for x=1,SIZEX do
@@ -220,6 +216,7 @@ local function partTwo()
 		io.write('\n')
 	end
 ]]
+	-- ... whereas this takes almost no time
 	for x=BOXSIZE,SIZEX-BOXSIZE do
 		for y=BOXSIZE,SIZEY-BOXSIZE do
 			local ch = grid[y][x]	-- top left
