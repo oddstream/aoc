@@ -1,5 +1,15 @@
 -- https://adventofcode.com/2019/day/20
 
+--[[
+ProggyVector
+
+So is it possible to be altogether faultless?
+No, that is impracticable;
+but it is possible to strive continuously not to commit faults.
+For we shall have cause to be satisfied if, by never relaxing our attention,
+we shall escape at least a few faults. -- Epictetus, Discourses, iv.12
+]]
+
 local function key(y,x)
 	return y*1000+x
 end
@@ -167,9 +177,7 @@ while #queue > 0 do
 			-- all other outer labeled tiles are effectively walls."
 			-- this rule gets invoked 20 times
 		else
-		-- assert(portals[key(pos.y,pos.x)]~=key(pos.y,pos.x))
 			local ny, nx = unkey(portals[k])
-			-- assert(maze[ny][nx]=='.')
 			local nlevel = pos.level+levelChange(pos.y,pos.x)
 			local nk3 = key3(ny,nx,nlevel)
 			if not seen[nk3] then
