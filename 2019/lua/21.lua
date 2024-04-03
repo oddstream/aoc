@@ -175,14 +175,32 @@ end
 local data = load()
 
 local function partOne()
-	local springscript = 'NOT C J\nAND D J\nNOT A T\nOR T J\nWALK\n'
+	local springscript = [[
+NOT C J
+AND D J
+NOT A T
+OR T J
+WALK
+
+]]
 	return intcode(shallowcopy(data), springscript)
 end
 
 log.report('Part One %d\n', partOne())	-- 19352493
 
 local function partTwo()
-	local springscript = 'NOT C J\nAND D J\nAND H J\nNOT B T\nAND D T\nOR T J\nNOT A T\nOR T J\nRUN\n'
+	local springscript = [[
+NOT C J
+AND D J
+AND H J
+NOT B T
+AND D T
+OR T J
+NOT A T
+OR T J
+RUN
+
+]]
 	return intcode(shallowcopy(data), springscript)
 end
 
