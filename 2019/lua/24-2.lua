@@ -25,7 +25,7 @@ local directions = {
 
 local function neighbours(grid, y, x, z)
 	local count = 0
-	-- reverse x,y to y,x and add 1
+
 	if x == 1 then
 		if grid[key(3,2,z-1)] then
 			count = count + 1
@@ -45,7 +45,6 @@ local function neighbours(grid, y, x, z)
 		end
 	end
 
-	-- add 1 to x, y
 	if x == 2 and y == 3 then
 		for yy=1,5 do
 			if grid[key(yy,1,z+1)] then
