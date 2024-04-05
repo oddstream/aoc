@@ -16,15 +16,15 @@ Favour readability over being clever, for example in Go, use `i += 1` rather tha
 
 Discourage screen clutter, for example in Go use a `switch` rather than a nested cascade of `if else if else`. (Except that, the Go debugger gets a bit jumpy around switch statements.)
 
-Keep all the code self-contained; no helper functions or libraries unless there is a very good reason.
+Keep all the code self-contained; no helper functions or libraries unless there is a very good reason (like MD5 for Lua).
 
 Use one logging/trace system, for example in Go use `log.Println`, in Lua use a simple `log` library.
 
 ## Lessons
 
-1. Remove all irrelevant characters from input before processing it. (2023 day 1 part 1). We mindful of any trailing newlines. Ignore all the fluff and just get the values (2023 day 5)
+1. Remove all irrelevant characters from input before processing it. (2023 day 1 part 1). Be mindful of any trailing newlines. Ignore all the fluff and just get the values (2023 day 5).
 2. Use maps (2023 day 3) with numeric keys (Lua), especially when key is multi-part.
-3. Brute force can be done in reverse (2023 day 5)
+3. Brute force can be done in reverse (2023 day 5).
 4. Avoid regular expressions, especially in Go. Like someone said: "if you solve a problem with regular expressions, you now have two problems". `fmt.Sscanf()` , `strings.Split()` and `strings.Fields()` can go a long way.
 5. Seeing the word 'infinite' in the description means you should be using maps, not a fixed size grid.
 6. A lot of stumbles and bad starts happen because I don't fully understand the puzzle descriptions, or think I can see ambiguities. When this happens, it's often helpful to work out a solution by hand in a text editor. At first, I laughed when I saw someone doing AoC in vim, but now I understand that completely.
@@ -59,7 +59,7 @@ print(bitoper(6,3,AND))  --> 2
 - Getting hung up on the use of colons in Go type definitions: you use them when filling in a struct `{x: 32, y:74}` and in other languages (eg Pascal) when declaring variables and function parameters, but just really noticed that Go quietly drops the latter, shouldn't it be `func dostuff(thing: int)` rather than just `func dostuff(thing int)`? I think the colon makes it clearer.
 - The most popular choice of language for AoC seems to be [Python](https://www.python.org/). However, I don't know Python and don't really want to. The nearest I'd be willing to go in that direction would be [Nim](https://nim-lang.org/). Other well-suited languages include [Perl](https://www.perl.org/), [Ruby](https://www.ruby-lang.org/en/), Dart, Tcl, ...
 - AoC likes a language that is compact without being unreadable (so, SED, and certainly no code golf), not long winded (so, not Fortran, Java or C and it's modern ilk), that has good out-of-the-box support for string manipulation, and can occasionally do MD5 hashes and bit-twiddling. It doesn't have to be fast. This [this blog entry](https://www.benkraft.org/2017/12/26/advent-of-code/) for a discussion of several languages (TLDR: he didn't like Perl).
-- You can write very readable vanilla JavaScript/ECMAScript/TypeScript and use the [Deno runtime](https://deno.com/).
+- You can write very readable vanilla JavaScript/ECMAScript/TypeScript and use the Bun or [Deno runtime](https://deno.com/).
 
 ## Notable resources
 
@@ -102,6 +102,7 @@ print(bitoper(6,3,AND))  --> 2
 | 2019 | 16   | Instructions not fully grokked, eventually muddled my way to the solutions. I may have reached my personal brain-limit. |
 | 2019 | 18   | Part one - tried several obvious and simple BFS/permutation approaches to this, but none of them would yield a decent run time (26! is a very big number). Eventually stumbled on a simple approach that works like magic; I understand how it find all the keys, I'm just not sure why it finds the shortest path. Part two takes an hour to run, and crashes luajit, so there's some work to do here still. |
 | 2019 | 19   | Simpler than other recent puzzles, and back to that pesky intcode. I really should make a more elegant incode interpreter. Eschewing any tricky math, I treated myself to some simple brute-force solutions. |
+| 2019 | 21   | Part one was easy once I stopped thinking I should actually model a deck of cards, and just keep track of card 2019 using mod arithmetic. Read part two and thought "nope", I just don't have the math skills for that, and moved on. |
 | 2020 | 7    | Only half-grokked this one; loaded the input into a map of maps, which was fine, but maybe should have used a map of trees. |
 | 2020 | 16   | Like 2018/6; great puzzle, whittling down occurrence lists.  |
 | 2020 | 18   | For part one, used a simple infix-to-postfix converter (that I first borrowed from Donald Alcock's "Illustrating Pascal" back in 1989) and a postfix evaluator. Delighted when I found that I only had to change one character in the precedence map to solve part two. |
