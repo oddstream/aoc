@@ -171,3 +171,13 @@ end
 
 local _, winningd = combat2(decks[1], decks[2])
 print('Part Two' , score(winningd))	-- 33651
+
+--[[
+$ time luajit 22.lua
+Part One	33421
+Part Two	33651
+
+real	0m1.520s
+user	0m1.515s
+sys	0m0.004s
+]]
