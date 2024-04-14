@@ -106,6 +106,10 @@ func part2(in string, expected int) (result int) {
 		return p.x >= -1 && p.x <= 20 && p.y >= -1 && p.y <= 20 && p.z >= -1 && p.z <= 20
 	}
 
+	// DFS, starting from outside the lava, to find all spaces that are outside the lava
+	// (but still within the lava bounds)
+	// after finding these points, we could do a part-one style scan to discover the surface,
+	// but instead we take a shortcut; whenever the DFS finds lava, you have also found a surface
 	for len(todo) > 0 {
 		here := todo[0]
 		todo = todo[1:]
@@ -122,12 +126,7 @@ func part2(in string, expected int) (result int) {
 		}
 		seen[here] = struct{}{}
 
-		for _, s := range here.sides() {
-			if _, ok := seen[s]; ok {
-				continue
-			}
-			todo = append(todo, s)
-		}
+		todo = append(todo, here.sides()...)
 	}
 
 	report(expected, result)
@@ -152,4 +151,11 @@ func main() {
 
 /*
 $ go run .
+RIGHT ANSWER: 3466
+part 1 duration 2.227214ms
+RIGHT ANSWER: 2012
+part 2 duration 6.164981ms
+Heap memory (in bytes): 2341176
+Number of garbage collections: 1
+main duration 8.451732ms
 */
